@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+  <meta
+    name="google-signin-client_id"
+    content="121361058946-m2hav07b8e4sp7rsh316l08p655lbvfc.apps.googleusercontent.com">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="verificarteweb">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>verificarteweb</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <script>
+    (function () {
+      function showCaptureWarning() {
+        let node = document.getElementById('capture-warning');
+        if (!node) {
+          node = document.createElement('div');
+          node.id = 'capture-warning';
+          node.style.position = 'fixed';
+          node.style.left = '50%';
+          node.style.bottom = '24px';
+          node.style.transform = 'translateX(-50%)';
+          node.style.background = '#081f3f';
+          node.style.color = '#fff';
+          node.style.padding = '12px 18px';
+          node.style.borderRadius = '12px';
+          node.style.fontFamily = 'Arial, sans-serif';
+          node.style.fontSize = '14px';
+          node.style.zIndex = '2147483647';
+          node.style.boxShadow = '0 10px 30px rgba(0,0,0,.35)';
+          node.style.opacity = '0';
+          node.style.transition = 'opacity .15s ease';
+          document.body.appendChild(node);
+        }
+        node.textContent = 'Se detectó una captura';
+        node.style.opacity = '1';
+        clearTimeout(window.__capWarnTimer);
+        window.__capWarnTimer = setTimeout(() => {
+          node.style.opacity = '0';
+        }, 2200);
+      }
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'PrintScreen' || e.code === 'PrintScreen') {
+          showCaptureWarning();
+        }
+      });
+    })();
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

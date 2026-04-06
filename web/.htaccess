@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Si el archivo o carpeta existe, se sirve normal.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Flutter Web SPA: cualquier otra ruta vuelve a index.html.
+RewriteRule ^ index.html [L]

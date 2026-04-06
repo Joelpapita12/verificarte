@@ -1,0 +1,34 @@
+﻿# Flutter/Dart
+.dart_tool/
+build/
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Env / keys
+.env
+.env.*
+*.pem
+*.key
+
+# Backups / data
+backups/
+*.sql
+
+# Old backend folders (not used in portfolio build)
+node_api/
+backend/
+php_bridge/
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.iml
+.metadata
+
+# Logs / misc
+analyzer*.txt
+analyzer*.log
+*.log
