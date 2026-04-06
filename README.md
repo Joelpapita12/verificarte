@@ -32,8 +32,4 @@ flutter build web --release
 ```
 
 ## Despliegue
-Sube el contenido de `build/web` al document root del dominio. El backend real es un puente PHP ya instalado en el servidor.
-
-## Notas
-- No incluye backend Node ni Dart.
-- No se suben archivos `.env` ni backups.
+Sube el contenido de `build/web` al document root del dominio. E
