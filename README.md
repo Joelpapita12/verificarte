@@ -18,18 +18,3 @@ Plataforma de registro y certificacion de obras con certificados por edicion, tr
 - Flutter 3.x
 - Dart 3.x
 
-## Ejecutar en local
-```powershell
-cd C:\Flutter\verificarte_web\verificarteweb
-flutter pub get
-flutter run -d chrome --web-port 3000
-```
-
-## Build para produccion
-```powershell
-cd C:\Flutter\verificarte_web\verificarteweb
-flutter build web --release
-```
-
-## Despliegue
-Sube el contenido de `build/web` al document root del dominio. E
