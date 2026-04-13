@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../models/chat_message.dart';
 import '../services/current_user_store.dart';
@@ -171,6 +171,174 @@ class _ChatsScreenState extends State<ChatsScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Widget _buildThreadListContent() {
+    if (_threads.isEmpty) {
+      return const Center(
+        child: Text(
+          'Aún no tienes conversaciones.',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.all(12),
+      itemCount: _threads.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final thread = _threads[index];
+        final isSelected = thread.otherUserId == _selectedOtherUserId;
+        return Card(
+          color: isSelected
+              ? const Color(0xFF16356A)
+              : const Color(0xFF0D2347),
+          child: ListTile(
+            onTap: () => _selectThread(thread),
+            leading: CircleAvatar(
+              backgroundColor: Colors.white12,
+              child: Text(
+                _initials(thread.otherName),
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            title: Text(
+              thread.otherName.isEmpty
+                  ? '@${thread.otherUserId}'
+                  : thread.otherName,
+              style: const TextStyle(color: Colors.white),
+            ),
+            subtitle: Text(
+              thread.lastMessage.isEmpty
+                  ? 'Sin mensajes'
+                  : thread.lastMessage,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) => _handleThreadAction(thread, value),
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                  value: 'pin',
+                  child: Text(thread.pinned ? 'Desanclar' : 'Anclar'),
+                ),
+                PopupMenuItem<String>(
+                  value: 'block',
+                  child: Text(thread.blocked ? 'Desbloquear' : 'Bloquear'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('Eliminar chat'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildConversationContent({required bool showBackButton}) {
+    final thread = _selectedThread!;
+    return Column(
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          color: const Color(0xFF0C1E37),
+          child: Row(
+            children: <Widget>[
+              if (showBackButton)
+                IconButton(
+                  onPressed: () =>
+                      setState(() => _selectedOtherUserId = null),
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  padding: EdgeInsets.zero,
+                ),
+              if (showBackButton) const SizedBox(width: 4),
+              CircleAvatar(
+                backgroundColor: Colors.white12,
+                child: Text(
+                  _initials(thread.otherName),
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  thread.otherName.isEmpty
+                      ? '@${thread.otherUserId}'
+                      : thread.otherName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(16),
+            itemCount: _messages.length,
+            itemBuilder: (context, index) {
+              final message = _messages[index];
+              final mine = message.senderId == _userId;
+              return Align(
+                alignment:
+                    mine ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  decoration: BoxDecoration(
+                    color: mine
+                        ? const Color(0xFF1D4D9B)
+                        : const Color(0xFF26384F),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    message.content,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Escribe un mensaje para continuar...',
+                      filled: true,
+                    ),
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: _sendMessage,
+                  icon: const Icon(Icons.send),
+                  label: const Text('Enviar'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_userId == null) {
@@ -183,204 +351,54 @@ class _ChatsScreenState extends State<ChatsScreen> {
       appBar: AppBar(title: const Text('Chats')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 320,
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(color: AppColors.deepNavy),
-                    child: _threads.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Aún no tienes conversaciones.',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.all(12),
-                            itemCount: _threads.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 8),
-                            itemBuilder: (context, index) {
-                              final thread = _threads[index];
-                              final isSelected =
-                                  thread.otherUserId == _selectedOtherUserId;
-                              return Card(
-                                color: isSelected
-                                    ? const Color(0xFF16356A)
-                                    : const Color(0xFF0D2347),
-                                child: ListTile(
-                                  onTap: () => _selectThread(thread),
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.white12,
-                                    child: Text(
-                                      _initials(thread.otherName),
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    thread.otherName.isEmpty
-                                        ? '@${thread.otherUserId}'
-                                        : thread.otherName,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  subtitle: Text(
-                                    thread.lastMessage.isEmpty
-                                        ? 'Sin mensajes'
-                                        : thread.lastMessage,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                  trailing: PopupMenuButton<String>(
-                                    onSelected: (value) =>
-                                        _handleThreadAction(thread, value),
-                                    itemBuilder: (context) =>
-                                        <PopupMenuEntry<String>>[
-                                      PopupMenuItem<String>(
-                                        value: 'pin',
-                                        child: Text(
-                                          thread.pinned
-                                              ? 'Desanclar'
-                                              : 'Anclar',
-                                        ),
-                                      ),
-                                      PopupMenuItem<String>(
-                                        value: 'block',
-                                        child: Text(
-                                          thread.blocked
-                                              ? 'Desbloquear'
-                                              : 'Bloquear',
-                                        ),
-                                      ),
-                                      const PopupMenuItem<String>(
-                                        value: 'delete',
-                                        child: Text('Eliminar chat'),
-                                      ),
-                                    ],
-                                  ),
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 600;
+
+                if (isNarrow) {
+                  // Móvil: un panel a la vez
+                  if (_selectedThread != null) {
+                    return DecoratedBox(
+                      decoration:
+                          const BoxDecoration(color: Color(0xFF10233F)),
+                      child: _buildConversationContent(showBackButton: true),
+                    );
+                  }
+                  return DecoratedBox(
+                    decoration:
+                        const BoxDecoration(color: AppColors.deepNavy),
+                    child: _buildThreadListContent(),
+                  );
+                }
+
+                // Escritorio: lista + chat lado a lado
+                return Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 320,
+                      child: DecoratedBox(
+                        decoration:
+                            const BoxDecoration(color: AppColors.deepNavy),
+                        child: _buildThreadListContent(),
+                      ),
+                    ),
+                    Expanded(
+                      child: DecoratedBox(
+                        decoration:
+                            const BoxDecoration(color: Color(0xFF10233F)),
+                        child: _selectedThread == null
+                            ? const Center(
+                                child: Text(
+                                  'Selecciona una conversación.',
+                                  style: TextStyle(color: Colors.white70),
                                 ),
-                              );
-                            },
-                          ),
-                  ),
-                ),
-                Expanded(
-                  child: DecoratedBox(
-                    decoration: const BoxDecoration(color: Color(0xFF10233F)),
-                    child: _selectedThread == null
-                        ? const Center(
-                            child: Text(
-                              'Selecciona una conversación.',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                          )
-                        : Column(
-                            children: <Widget>[
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                color: const Color(0xFF0C1E37),
-                                child: Row(
-                                  children: <Widget>[
-                                    CircleAvatar(
-                                      backgroundColor: Colors.white12,
-                                      child: Text(
-                                        _initials(_selectedThread!.otherName),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        _selectedThread!.otherName.isEmpty
-                                            ? '@${_selectedThread!.otherUserId}'
-                                            : _selectedThread!.otherName,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  padding: const EdgeInsets.all(16),
-                                  itemCount: _messages.length,
-                                  itemBuilder: (context, index) {
-                                    final message = _messages[index];
-                                    final mine = message.senderId == _userId;
-                                    return Align(
-                                      alignment: mine
-                                          ? Alignment.centerRight
-                                          : Alignment.centerLeft,
-                                      child: Container(
-                                        margin:
-                                            const EdgeInsets.only(bottom: 10),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 10,
-                                        ),
-                                        constraints: const BoxConstraints(
-                                          maxWidth: 420,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: mine
-                                              ? const Color(0xFF1D4D9B)
-                                              : const Color(0xFF26384F),
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                        child: Text(
-                                          message.content,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              SafeArea(
-                                top: false,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: TextField(
-                                          controller: _messageController,
-                                          decoration: const InputDecoration(
-                                            hintText:
-                                                'Escribe un mensaje para continuar...',
-                                            filled: true,
-                                          ),
-                                          onSubmitted: (_) => _sendMessage(),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      ElevatedButton.icon(
-                                        onPressed: _sendMessage,
-                                        icon: const Icon(Icons.send),
-                                        label: const Text('Enviar'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
-              ],
+                              )
+                            : _buildConversationContent(showBackButton: false),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
     );
   }
@@ -394,4 +412,3 @@ class _ChatsScreenState extends State<ChatsScreen> {
         .toUpperCase();
   }
 }
-

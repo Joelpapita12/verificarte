@@ -802,13 +802,31 @@ class FeedApi {
   }) => _upsertChatMeta(userId: userId, otherUserId: otherUserId, deleted: true);
 
   Future<List<NotificationDto>> fetchNotifications(int userId) async {
+    // Crear la tabla si no existe (primera vez o entorno nuevo)
+    await BunkerDB.consulta(
+      '''
+      CREATE TABLE IF NOT EXISTS notificacionestado (
+        id_estado INT AUTO_INCREMENT PRIMARY KEY,
+        id_usuario INT NOT NULL,
+        last_seen DATETIME NOT NULL,
+        UNIQUE KEY uniq_user (id_usuario)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      ''',
+    );
+
     final lastSeenRows = _rows(
       await BunkerDB.consulta(
         'SELECT last_seen FROM notificacionestado WHERE id_usuario = :id LIMIT 1',
         params: <String, dynamic>{'id': userId},
       ),
     );
-    final lastSeen = lastSeenRows.isEmpty ? '1970-01-01 00:00:00' : (lastSeenRows.first['last_seen'] ?? '1970-01-01 00:00:00').toString();
+    final lastSeen = lastSeenRows.isEmpty
+        ? '1970-01-01 00:00:00'
+        : (lastSeenRows.first['last_seen'] ?? '1970-01-01 00:00:00').toString();
+
+    // Nota: PDO no permite el mismo parámetro nombrado más de una vez en la
+    // misma consulta cuando emulate_prepares=false. Por eso usamos nombres
+    // únicos por cada aparición (:uid1/:uid2/:uid3 y :ls1/:ls2).
     final rows = _rows(
       await BunkerDB.consulta(
         '''
@@ -817,16 +835,16 @@ class FeedApi {
             'like' AS type,
             l.id_publicacion AS post_id,
             l.id_usuario AS other_user_id,
-            CASE WHEN l.fecha_like > :last_seen THEN 1 ELSE 0 END AS unread,
+            CASE WHEN l.fecha > :ls1 THEN 1 ELSE 0 END AS unread,
             COALESCE(u.nombre_publico, u.nombre_usuario) AS actor_name,
             u.foto_perfil AS actor_avatar,
             NULL AS comment_text,
-            l.fecha_like AS created_at
+            l.fecha AS created_at
           FROM `like` l
           JOIN publicacion p ON p.id_publicacion = l.id_publicacion
           JOIN usuario u ON u.id_usuario = l.id_usuario
-          WHERE p.id_artista = :user_id
-            AND l.id_usuario <> :user_id
+          WHERE p.id_artista = :uid1
+            AND l.id_usuario <> :uid1b
 
           UNION ALL
 
@@ -834,7 +852,7 @@ class FeedApi {
             'comment' AS type,
             c.id_publicacion AS post_id,
             c.id_usuario AS other_user_id,
-            CASE WHEN c.fecha > :last_seen THEN 1 ELSE 0 END AS unread,
+            CASE WHEN c.fecha > :ls2 THEN 1 ELSE 0 END AS unread,
             COALESCE(u.nombre_publico, u.nombre_usuario) AS actor_name,
             u.foto_perfil AS actor_avatar,
             c.contenido AS comment_text,
@@ -842,8 +860,8 @@ class FeedApi {
           FROM comentario c
           JOIN publicacion p ON p.id_publicacion = c.id_publicacion
           JOIN usuario u ON u.id_usuario = c.id_usuario
-          WHERE p.id_artista = :user_id
-            AND c.id_usuario <> :user_id
+          WHERE p.id_artista = :uid2
+            AND c.id_usuario <> :uid2b
 
           UNION ALL
 
@@ -858,12 +876,20 @@ class FeedApi {
             m.fecha AS created_at
           FROM mensaje m
           JOIN usuario u ON u.id_usuario = m.id_emisor
-          WHERE m.id_receptor = :user_id
+          WHERE m.id_receptor = :uid3
         ) notifications
         ORDER BY created_at DESC
         LIMIT 80
         ''',
-        params: <String, dynamic>{'user_id': userId, 'last_seen': lastSeen},
+        params: <String, dynamic>{
+          'uid1': userId,
+          'uid1b': userId,
+          'uid2': userId,
+          'uid2b': userId,
+          'uid3': userId,
+          'ls1': lastSeen,
+          'ls2': lastSeen,
+        },
       ),
     );
     return rows.map(NotificationDto.fromJson).toList();

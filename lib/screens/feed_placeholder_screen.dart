@@ -12,7 +12,6 @@ import '../screens/login_screen.dart';
 import '../screens/perfil_artista_screen.dart';
 import '../services/current_user_store.dart';
 import '../services/feed_api.dart';
-import '../services/file_download.dart';
 import '../utils/certificate_pdf.dart';
 import '../widgets/certificate_template_view.dart';
 import '../widgets/security_watermark.dart';
@@ -752,37 +751,16 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: <Widget>[
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        final Uint8List pdf = await buildCertificatePdfFromBoundary(
-                          repaintKey,
-                        );
-                        if (!mounted) return;
-                        await Printing.layoutPdf(onLayout: (_) async => pdf);
-                      },
-                      icon: const Icon(Icons.print_outlined),
-                      label: const Text('Imprimir'),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        final Uint8List pdf = await buildCertificatePdfFromBoundary(
-                          repaintKey,
-                        );
-                        downloadFile(
-                          pdf,
-                          'certificado-${certificate.id}.pdf',
-                          'application/pdf',
-                        );
-                      },
-                      icon: const Icon(Icons.download_outlined),
-                      label: const Text('Descargar PDF'),
-                    ),
-                  ],
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final Uint8List pdf = await buildCertificatePdfFromBoundary(
+                      repaintKey,
+                    );
+                    if (!mounted) return;
+                    await Printing.layoutPdf(onLayout: (_) async => pdf);
+                  },
+                  icon: const Icon(Icons.print_outlined),
+                  label: const Text('Imprimir'),
                 ),
               ],
             ),
