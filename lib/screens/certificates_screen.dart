@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 
 import '../models/api_models.dart';
 import '../services/auth_api.dart';
@@ -22,6 +23,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
   final AuthApi _authApi = AuthApi();
   final Map<int, GlobalKey> _certificateKeys = <int, GlobalKey>{};
   final Map<int, bool> _isDownloading = <int, bool>{};
+  final Map<int, bool> _isPrinting = <int, bool>{};
 
   bool _loading = true;
   String? _transferCode;
@@ -53,11 +55,14 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
 
       final keys = <int, GlobalKey>{};
       final downloading = <int, bool>{};
+      final printing = <int, bool>{};
       for (final certificate in certs) {
         keys[certificate.certificateId] =
             _certificateKeys[certificate.certificateId] ?? GlobalKey();
         downloading[certificate.certificateId] =
             _isDownloading[certificate.certificateId] ?? false;
+        printing[certificate.certificateId] =
+            _isPrinting[certificate.certificateId] ?? false;
       }
 
       setState(() {
@@ -69,6 +74,9 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
         _isDownloading
           ..clear()
           ..addAll(downloading);
+        _isPrinting
+          ..clear()
+          ..addAll(printing);
       });
     } finally {
       if (mounted) {
@@ -101,6 +109,30 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
     } finally {
       if (mounted) {
         setState(() => _isDownloading[certificate.certificateId] = false);
+      }
+    }
+  }
+
+  Future<void> _printCertificate(MyCertificateDto certificate) async {
+    final key = _certificateKeys[certificate.certificateId];
+    if (key == null) return;
+
+    setState(() => _isPrinting[certificate.certificateId] = true);
+    try {
+      final pdfBytes = await buildCertificatePdfFromBoundary(key);
+      await Printing.layoutPdf(onLayout: (_) async => pdfBytes);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Ocurrió un error al imprimir. Por favor, inténtalo de nuevo.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isPrinting[certificate.certificateId] = false);
       }
     }
   }
@@ -194,6 +226,8 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                     final key = _certificateKeys[certificate.certificateId];
                     final isDownloading =
                         _isDownloading[certificate.certificateId] == true;
+                    final isPrinting =
+                        _isPrinting[certificate.certificateId] == true;
 
                     return Card(
                       child: ExpansionTile(
@@ -215,14 +249,30 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                                   ),
                                 ),
                               const SizedBox(height: 12),
-                              if (isDownloading)
-                                const CircularProgressIndicator()
-                              else
-                                ElevatedButton(
-                                  onPressed: () =>
-                                      _downloadCertificate(certificate),
-                                  child: const Text('Descargar PDF'),
-                                ),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.center,
+                                children: <Widget>[
+                                  if (isPrinting)
+                                    const CircularProgressIndicator()
+                                  else
+                                    OutlinedButton.icon(
+                                      onPressed: () =>
+                                          _printCertificate(certificate),
+                                      icon: const Icon(Icons.print_outlined),
+                                      label: const Text('Imprimir'),
+                                    ),
+                                  if (isDownloading)
+                                    const CircularProgressIndicator()
+                                  else
+                                    ElevatedButton(
+                                      onPressed: () =>
+                                          _downloadCertificate(certificate),
+                                      child: const Text('Descargar PDF'),
+                                    ),
+                                ],
+                              ),
                             ],
                           ),
                         ],

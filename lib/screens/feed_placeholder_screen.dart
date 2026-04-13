@@ -1,7 +1,4 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:printing/printing.dart';
 
 import '../constants/app_colors.dart';
 import '../models/api_models.dart';
@@ -9,10 +6,10 @@ import '../models/feed_post.dart';
 import '../screens/chats_screen.dart';
 import 'package:verificarteweb/screens/create_post_flow_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/create_account_screen.dart';
 import '../screens/perfil_artista_screen.dart';
 import '../services/current_user_store.dart';
 import '../services/feed_api.dart';
-import '../utils/certificate_pdf.dart';
 import '../widgets/certificate_template_view.dart';
 import '../widgets/security_watermark.dart';
 import '../widgets/side_menu.dart';
@@ -704,8 +701,6 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
         signatureImageUrl: certificate.signatureImageUrl,
       );
 
-      final GlobalKey repaintKey = GlobalKey();
-
       await showDialog<void>(
         context: context,
         builder: (_) => Dialog(
@@ -741,26 +736,11 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
                 const SizedBox(height: 12),
                 Expanded(
                   child: Center(
-                    child: RepaintBoundary(
-                      key: repaintKey,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 660),
-                        child: CertificateTemplateView(data: data),
-                      ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 660),
+                      child: CertificateTemplateView(data: data),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final Uint8List pdf = await buildCertificatePdfFromBoundary(
-                      repaintKey,
-                    );
-                    if (!mounted) return;
-                    await Printing.layoutPdf(onLayout: (_) async => pdf);
-                  },
-                  icon: const Icon(Icons.print_outlined),
-                  label: const Text('Imprimir'),
                 ),
               ],
             ),
@@ -815,6 +795,23 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
             tooltip: 'Buscar',
             icon: const Icon(Icons.search),
           ),
+          if (_isGuest) ...[
+            TextButton(
+              onPressed: () => Navigator.of(context).pushNamed(LoginScreen.routeName),
+              child: const Text(
+                'Iniciar sesión',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(CreateAccountScreen.routeName),
+              child: const Text(
+                'Crear cuenta',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
           IconButton(
             onPressed: () {
               if (_isGuest) {
