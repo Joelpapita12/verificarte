@@ -598,30 +598,53 @@ class FeedApi {
     required int postId,
     required String content,
   }) async {
-    final insert = _map(
-      await BunkerDB.consulta(
-        'INSERT INTO comentario (id_usuario, id_publicacion, contenido) VALUES (:user_id, :post_id, :content)',
-        params: <String, dynamic>{
-          'user_id': userId,
-          'post_id': postId,
-          'content': content.trim(),
-        },
-      ),
+    final insertResult = await BunkerDB.consulta(
+      'INSERT INTO comentario (id_usuario, id_publicacion, contenido) VALUES (:user_id, :post_id, :content)',
+      params: <String, dynamic>{
+        'user_id': userId,
+        'post_id': postId,
+        'content': content.trim(),
+      },
     );
-    final commentId = _toInt(insert?['last_id']);
-    final rows = _rows(
-      await BunkerDB.consulta(
-        '''
-        SELECT c.id_comentario, c.id_usuario, c.contenido, c.fecha,
-               u.nombre_usuario, u.nombre_publico
-        FROM comentario c
-        JOIN usuario u ON u.id_usuario = c.id_usuario
-        WHERE c.id_comentario = :id
-        LIMIT 1
-        ''',
-        params: <String, dynamic>{'id': commentId},
-      ),
-    );
+    int commentId = 0;
+    if (insertResult is Map) {
+      commentId = _toInt(insertResult['last_id']);
+    } else if (insertResult is List && insertResult.isNotEmpty) {
+      commentId = _toInt((insertResult.first as Map?)?['last_id']);
+    }
+
+    final List<Map<String, dynamic>> rows;
+    if (commentId > 0) {
+      rows = _rows(
+        await BunkerDB.consulta(
+          '''
+          SELECT c.id_comentario, c.id_usuario, c.contenido, c.fecha,
+                 u.nombre_usuario, u.nombre_publico
+          FROM comentario c
+          JOIN usuario u ON u.id_usuario = c.id_usuario
+          WHERE c.id_comentario = :id
+          LIMIT 1
+          ''',
+          params: <String, dynamic>{'id': commentId},
+        ),
+      );
+    } else {
+      rows = _rows(
+        await BunkerDB.consulta(
+          '''
+          SELECT c.id_comentario, c.id_usuario, c.contenido, c.fecha,
+                 u.nombre_usuario, u.nombre_publico
+          FROM comentario c
+          JOIN usuario u ON u.id_usuario = c.id_usuario
+          WHERE c.id_usuario = :user_id AND c.id_publicacion = :post_id
+          ORDER BY c.id_comentario DESC
+          LIMIT 1
+          ''',
+          params: <String, dynamic>{'user_id': userId, 'post_id': postId},
+        ),
+      );
+    }
+    if (rows.isEmpty) throw Exception('No se pudo obtener el comentario');
     return PostCommentDto.fromJson(rows.first);
   }
 
@@ -670,7 +693,7 @@ class FeedApi {
   Future<List<FeedPostDto>> fetchFavoritePosts({required int userId}) async {
     final favoriteRows = _rows(
       await BunkerDB.consulta(
-        'SELECT id_publicacion FROM favorito WHERE id_usuario = :user_id ORDER BY fecha_agregado DESC',
+        'SELECT id_publicacion FROM favorito WHERE id_usuario = :user_id ORDER BY id_favorito DESC',
         params: <String, dynamic>{'user_id': userId},
       ),
     );
