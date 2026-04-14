@@ -975,6 +975,23 @@ class _FeedPostCard extends StatefulWidget {
 class _FeedPostCardState extends State<_FeedPostCard> {
   int _currentIndex = 0;
 
+  String _formatDimensions(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '-';
+    final v = raw.trim();
+    final numRegex = RegExp(
+      r'(\d+(?:[.,]\d+)?)\s*[xX×]\s*(\d+(?:[.,]\d+)?)',
+    );
+    final match = numRegex.firstMatch(v);
+    if (match != null) {
+      final w = match.group(1)!.replaceAll(',', '.');
+      final h = match.group(2)!.replaceAll(',', '.');
+      final hasUnit = v.toLowerCase().contains('cm') ||
+          RegExp(r'\d\s*m\b').hasMatch(v.toLowerCase());
+      return hasUnit ? '$w × $h cm' : '$w × $h cm';
+    }
+    return v;
+  }
+
   List<FeedPostEditionDto> get _editions {
     if (widget.post.ediciones.isNotEmpty) return widget.post.ediciones;
     return <FeedPostEditionDto>[
@@ -1304,7 +1321,7 @@ class _FeedPostCardState extends State<_FeedPostCard> {
               ),
               _MetaChip(
                 label: 'Dimensiones',
-                value: widget.post.dimensiones ?? '-',
+                value: _formatDimensions(widget.post.dimensiones),
               ),
               _MetaChip(
                 label: 'Año',
@@ -1715,51 +1732,68 @@ class _NotificationsDialog extends StatelessWidget {
       title: const Text('Notificaciones'),
       content: SizedBox(
         width: 520,
-        child: notifications.isEmpty
-            ? const Text('No tienes notificaciones nuevas.')
-            : ListView.separated(
-                shrinkWrap: true,
-                itemCount: notifications.length,
-                separatorBuilder: (_, _) => const Divider(),
-                itemBuilder: (context, index) {
-                  final NotificationDto notification = notifications[index];
-                  final String subtitle;
-                  if (notification.type == 'like') {
-                    subtitle = '${notification.actorName} dio like';
-                  } else if (notification.type == 'comment' &&
-                      (notification.commentText?.trim().isNotEmpty ?? false)) {
-                    subtitle = notification.commentText!.trim();
-                  } else {
-                    subtitle = 'Nuevo mensaje';
-                  }
-                  return ListTile(
-                    tileColor: notification.unread
-                        ? Colors.blue.withValues(alpha: 0.08)
-                        : null,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    leading: CircleAvatar(
-                      child: Text(
-                        notification.actorName.isEmpty
-                            ? '?'
-                            : notification.actorName.characters.first
-                                  .toUpperCase(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Text(
+              'Aquí aparecen los likes, comentarios y mensajes nuevos que recibes en tus publicaciones.',
+              style: TextStyle(color: Colors.black54, fontSize: 13),
+            ),
+            const Divider(height: 20),
+            if (notifications.isEmpty)
+              const Text('No tienes notificaciones nuevas.')
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 360),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: notifications.length,
+                  separatorBuilder: (_, _) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final NotificationDto notification = notifications[index];
+                    final String subtitle;
+                    if (notification.type == 'like') {
+                      subtitle = '${notification.actorName} dio like';
+                    } else if (notification.type == 'comment' &&
+                        (notification.commentText?.trim().isNotEmpty ?? false)) {
+                      subtitle = notification.commentText!.trim();
+                    } else {
+                      subtitle = 'Nuevo mensaje';
+                    }
+                    return ListTile(
+                      tileColor: notification.unread
+                          ? Colors.blue.withValues(alpha: 0.08)
+                          : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                    title: Text(
-                      notification.type == 'like'
-                          ? 'Nuevo like'
-                          : notification.type == 'comment'
-                          ? 'Nuevo comentario'
-                          : 'Nuevo mensaje',
-                    ),
-                    subtitle: Text('$subtitle\n${_timeAgo(notification.createdAt)}'),
-                    isThreeLine: true,
-                    onTap: () => onTapNotification(notification),
-                  );
-                },
+                      leading: CircleAvatar(
+                        child: Text(
+                          notification.actorName.isEmpty
+                              ? '?'
+                              : notification.actorName.characters.first
+                                    .toUpperCase(),
+                        ),
+                      ),
+                      title: Text(
+                        notification.type == 'like'
+                            ? 'Nuevo like'
+                            : notification.type == 'comment'
+                            ? 'Nuevo comentario'
+                            : 'Nuevo mensaje',
+                      ),
+                      subtitle: Text(
+                        '$subtitle\n${_timeAgo(notification.createdAt)}',
+                      ),
+                      isThreeLine: true,
+                      onTap: () => onTapNotification(notification),
+                    );
+                  },
+                ),
               ),
+          ],
+        ),
       ),
       actions: <Widget>[
         TextButton(

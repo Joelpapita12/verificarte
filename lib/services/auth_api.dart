@@ -57,6 +57,9 @@ class AuthApi {
         return 'artista';
       case 'administrador':
         return 'administrador';
+      case 'buyer':
+      case 'comprador':
+        return 'comprador';
       default:
         return 'seguidor';
     }
@@ -176,7 +179,23 @@ class AuthApi {
           'transfer_code': transferCode,
         },
       );
-      final userId = _parseUserId((insert as Map?)?['last_id']);
+      int? userId;
+      if (insert is Map) {
+        userId = _parseUserId(insert['last_id']);
+      } else if (insert is List && insert.isNotEmpty) {
+        userId = _parseUserId((insert.first as Map?)?['last_id']);
+      }
+      if (userId == null || userId <= 0) {
+        final fallback = _asList(
+          await BunkerDB.consulta(
+            'SELECT id_usuario FROM usuario WHERE correo = :email LIMIT 1',
+            params: <String, dynamic>{'email': cleanEmail},
+          ),
+        );
+        if (fallback.isNotEmpty) {
+          userId = _parseUserId(fallback.first['id_usuario']);
+        }
+      }
       if (userId == null || userId <= 0) {
         return AuthResult.fail('No se pudo crear la cuenta');
       }
@@ -337,7 +356,23 @@ class AuthApi {
           'google_sub': account.id,
         },
       );
-      final userId = _parseUserId((insert as Map?)?['last_id']);
+      int? userId;
+      if (insert is Map) {
+        userId = _parseUserId(insert['last_id']);
+      } else if (insert is List && insert.isNotEmpty) {
+        userId = _parseUserId((insert.first as Map?)?['last_id']);
+      }
+      if (userId == null || userId <= 0) {
+        final fallback = _asList(
+          await BunkerDB.consulta(
+            'SELECT id_usuario FROM usuario WHERE correo = :email LIMIT 1',
+            params: <String, dynamic>{'email': account.email.trim().toLowerCase()},
+          ),
+        );
+        if (fallback.isNotEmpty) {
+          userId = _parseUserId(fallback.first['id_usuario']);
+        }
+      }
       if (userId == null || userId <= 0) {
         return AuthResult.fail('No se pudo iniciar sesión con Google');
       }
