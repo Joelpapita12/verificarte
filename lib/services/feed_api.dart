@@ -693,7 +693,7 @@ class FeedApi {
   Future<List<FeedPostDto>> fetchFavoritePosts({required int userId}) async {
     final favoriteRows = _rows(
       await BunkerDB.consulta(
-        'SELECT id_publicacion FROM favorito WHERE id_usuario = :user_id ORDER BY id_favorito DESC',
+        'SELECT id_publicacion FROM favorito WHERE id_usuario = :user_id',
         params: <String, dynamic>{'user_id': userId},
       ),
     );
@@ -701,6 +701,27 @@ class FeedApi {
     final all = await fetchPosts(userId: userId);
     final ids = favoriteRows.map((row) => _toInt(row['id_publicacion'])).toSet();
     return all.where((post) => ids.contains(post.id)).toList();
+  }
+
+  Future<Map<String, String>?> fetchUserBasicInfo({required int userId}) async {
+    final rows = _rows(
+      await BunkerDB.consulta(
+        '''
+        SELECT nombre_publico, nombre_usuario, foto_perfil
+        FROM usuario
+        WHERE id_usuario = :id
+        LIMIT 1
+        ''',
+        params: <String, dynamic>{'id': userId},
+      ),
+    );
+    if (rows.isEmpty) return null;
+    final row = rows.first;
+    return <String, String>{
+      'nombre_publico': (row['nombre_publico'] ?? '').toString(),
+      'nombre_usuario': (row['nombre_usuario'] ?? '').toString(),
+      'foto_perfil': (row['foto_perfil'] ?? '').toString(),
+    };
   }
 
   Future<List<ChatThreadDto>> fetchChatThreads(int userId) async {

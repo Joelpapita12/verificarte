@@ -59,6 +59,33 @@ class _ChatsScreenState extends State<ChatsScreen> {
     }
 
     final threads = await _api.fetchChatThreads(userId);
+
+    // Si hay un destinatario objetivo sin hilo previo (sin mensajes), crear hilo sintético
+    final targetId = _selectedOtherUserId ?? widget.initialOtherUserId;
+    if (targetId != null && !threads.any((t) => t.otherUserId == targetId)) {
+      final info = await _api.fetchUserBasicInfo(userId: targetId);
+      final nombre = info?['nombre_publico']?.trim().isNotEmpty == true
+          ? info!['nombre_publico']!
+          : info?['nombre_usuario']?.trim().isNotEmpty == true
+          ? info!['nombre_usuario']!
+          : '#$targetId';
+      threads.insert(
+        0,
+        ChatThreadDto(
+          otherUserId: targetId,
+          otherName: nombre,
+          otherAvatar: info?['foto_perfil']?.trim().isNotEmpty == true
+              ? info!['foto_perfil']
+              : null,
+          lastMessage: '',
+          lastTime: DateTime.now(),
+          unreadCount: 0,
+          pinned: false,
+          blocked: false,
+        ),
+      );
+    }
+
     final selected = _selectedOtherUserId ??
         widget.initialOtherUserId ??
         (threads.isNotEmpty ? threads.first.otherUserId : null);
