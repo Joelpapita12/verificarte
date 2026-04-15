@@ -393,8 +393,10 @@ class AuthApi {
           SELECT u.id_usuario, u.nombre_usuario, u.nombre_publico, u.correo, u.rol,
                  COALESCE(u.descripcion_breve, '') AS descripcion_breve,
                  COALESCE(u.foto_perfil, '') AS foto_perfil,
-                 COALESCE(u.transfer_code, '') AS transfer_code
+                 COALESCE(u.transfer_code, '') AS transfer_code,
+                 p.enlaces_externos
           FROM usuario u
+          LEFT JOIN perfilartista p ON p.id_usuario = u.id_usuario
           WHERE u.id_usuario = :id
           LIMIT 1
           ''',
@@ -405,6 +407,7 @@ class AuthApi {
         return UserProfileResult.fail('No se pudo cargar perfil');
       }
       final user = rows.first;
+      final links = (user['enlaces_externos'] ?? '').toString().trim();
       return UserProfileResult.ok(
         UserProfile(
           id: _parseUserId(user['id_usuario']) ?? 0,
@@ -415,6 +418,7 @@ class AuthApi {
           description: (user['descripcion_breve'] ?? '').toString(),
           photoUrl: (user['foto_perfil'] ?? '').toString(),
           transferCode: (user['transfer_code'] ?? '').toString(),
+          externalLinks: links.isEmpty ? null : links,
         ),
       );
     } catch (_) {
@@ -618,6 +622,7 @@ class UserProfile {
     required this.description,
     required this.photoUrl,
     required this.transferCode,
+    this.externalLinks,
   });
 
   final int id;
@@ -628,6 +633,7 @@ class UserProfile {
   final String description;
   final String photoUrl;
   final String transferCode;
+  final String? externalLinks;
 }
 
 class UserProfileResult {

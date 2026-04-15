@@ -9,7 +9,6 @@ import '../services/temp_session_store.dart';
 import '../services/auth_api.dart';
 import '../services/current_user_store.dart';
 import '../services/local_image_picker.dart';
-import 'login_screen.dart';
 import 'loading_screen.dart';
 import 'two_factor_screen.dart';
 
@@ -113,7 +112,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(
                   context,
-                ).pushReplacementNamed(LoginScreen.routeName);
+                ).pushReplacementNamed(LoadingScreen.routeName);
               },
               child: const Text('No'),
             ),

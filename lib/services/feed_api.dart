@@ -328,29 +328,42 @@ class FeedApi {
     final totalEditions = normalizedImages.isEmpty ? 1 : normalizedImages.length;
     final primaryImage = normalizedImages.isEmpty ? imageUrl : normalizedImages.first;
 
-    final insertPost = _map(
-      await BunkerDB.consulta(
-        '''
-        INSERT INTO publicacion (
-          id_artista, titulo, descripcion_corta, imagen_obra, estado_obra, hash_obra, es_mayor_18
-        ) VALUES (
-          :artist_id, :title, :description, :image_url, :estado_obra, :hash_obra, :es_mayor_18
-        )
-        ''',
-        params: <String, dynamic>{
-          'artist_id': artistId,
-          'title': title.trim(),
-          'description': description.trim(),
-          'image_url': primaryImage,
-          'estado_obra': estadoObra,
-          'hash_obra': _sha256(
-            '${title.trim()}|$nombreAutorCompleto|$tecnicaMateriales|$anioCreacion',
-          ),
-          'es_mayor_18': esMayor18 ? 1 : 0,
-        },
-      ),
+    final insertPostRaw = await BunkerDB.consulta(
+      '''
+      INSERT INTO publicacion (
+        id_artista, titulo, descripcion_corta, imagen_obra, estado_obra, hash_obra, es_mayor_18
+      ) VALUES (
+        :artist_id, :title, :description, :image_url, :estado_obra, :hash_obra, :es_mayor_18
+      )
+      ''',
+      params: <String, dynamic>{
+        'artist_id': artistId,
+        'title': title.trim(),
+        'description': description.trim(),
+        'image_url': primaryImage,
+        'estado_obra': estadoObra,
+        'hash_obra': _sha256(
+          '${title.trim()}|$nombreAutorCompleto|$tecnicaMateriales|$anioCreacion',
+        ),
+        'es_mayor_18': esMayor18 ? 1 : 0,
+      },
     );
-    final postId = _toInt(insertPost?['last_id']);
+    int postId = 0;
+    if (insertPostRaw is Map) {
+      postId = _toInt(insertPostRaw['last_id']);
+    } else if (insertPostRaw is List && insertPostRaw.isNotEmpty) {
+      postId = _toInt((insertPostRaw.first as Map?)?['last_id']);
+    }
+    if (postId <= 0) {
+      // Fallback: buscar el último insert del artista
+      final fallback = _rows(
+        await BunkerDB.consulta(
+          'SELECT id_publicacion FROM publicacion WHERE id_artista = :aid ORDER BY id_publicacion DESC LIMIT 1',
+          params: <String, dynamic>{'aid': artistId},
+        ),
+      );
+      if (fallback.isNotEmpty) postId = _toInt(fallback.first['id_publicacion']);
+    }
     if (postId <= 0) {
       throw Exception('No se pudo registrar la obra en el servidor. Verifica los datos e intenta de nuevo.');
     }

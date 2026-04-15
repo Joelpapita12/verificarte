@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
 
 import '../services/auth_api.dart';
 import '../services/current_user_store.dart';
@@ -25,6 +27,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _loading = true;
   bool _saving = false;
   String? _photoUrl;
+  Uint8List? _pickedImageBytes;
 
   @override
   void initState() {
@@ -50,6 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (result.ok && result.profile != null) {
       _publicNameController.text = result.profile!.publicName;
       _descriptionController.text = result.profile!.description;
+      _linksController.text = result.profile!.externalLinks ?? '';
       _photoUrl = result.profile!.photoUrl.trim().isEmpty
           ? null
           : result.profile!.photoUrl;
@@ -68,7 +72,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       bytes: selected.bytes,
       fileName: selected.fileName,
     );
-    setState(() => _photoUrl = url);
+    setState(() {
+      _photoUrl = url;
+      _pickedImageBytes = selected.bytes;
+    });
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -131,10 +138,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Center(
               child: CircleAvatar(
                 radius: 42,
-                backgroundImage: _photoUrl != null
-                    ? NetworkImage(_photoUrl!)
-                    : null,
-                child: _photoUrl == null
+                backgroundImage: _pickedImageBytes != null
+                    ? MemoryImage(_pickedImageBytes!) as ImageProvider
+                    : _photoUrl != null
+                        ? NetworkImage(_photoUrl!)
+                        : null,
+                child: _pickedImageBytes == null && _photoUrl == null
                     ? const Icon(Icons.person, size: 42)
                     : null,
               ),
