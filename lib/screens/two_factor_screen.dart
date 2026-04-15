@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 import '../widgets/app_buttons.dart';
 import '../services/temp_session_store.dart';
 import '../services/otp_api.dart';
-import 'login_screen.dart';
+import 'loading_screen.dart';
 
 class TwoFactorScreen extends StatefulWidget {
   const TwoFactorScreen({super.key});
@@ -44,7 +44,7 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(
                   context,
-                ).pushReplacementNamed(LoginScreen.routeName);
+                ).pushReplacementNamed(LoadingScreen.routeName);
               },
               child: const Text('Ir a iniciar sesión'),
             ),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/api_models.dart';
 import '../models/chat_message.dart';
@@ -196,10 +197,31 @@ class FeedApi {
     return rows.map(AccountSearchDto.fromJson).toList();
   }
 
+  static const String _nodeApiUrl = 'https://verificarte.softapatio.mx:8090';
+
   Future<String> uploadPostImage({
     required Uint8List bytes,
     required String fileName,
-  }) async => _dataUrl(bytes, fileName);
+  }) async {
+    try {
+      final uri = Uri.parse('$_nodeApiUrl/api/upload/image');
+      final request = http.MultipartRequest('POST', uri)
+        ..files.add(http.MultipartFile.fromBytes('image', bytes, filename: fileName));
+      final streamed = await request.send();
+      final body = await streamed.stream.bytesToString();
+      final data = jsonDecode(body);
+      if (streamed.statusCode == 422 && data is Map && data['code'] == 'AI_IMAGE_BLOCKED') {
+        throw Exception('Imagen rechazada: parece generada por IA. Sube una fotografía o imagen real.');
+      }
+      if (data is Map && data['ok'] == true) {
+        return (data['imageUrl'] as String?) ?? '';
+      }
+      throw Exception((data is Map ? data['error'] : null) ?? 'Error al subir la imagen');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('No se pudo conectar con el servidor de imágenes');
+    }
+  }
 
   Future<bool> hasUserSignature({required int userId}) async {
     final rows = _rows(
