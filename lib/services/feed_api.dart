@@ -203,24 +203,50 @@ class FeedApi {
     required Uint8List bytes,
     required String fileName,
   }) async {
+    // Intento 1: Node.js con validación IA
     try {
       final uri = Uri.parse('$_nodeApiUrl/api/upload/image');
       final request = http.MultipartRequest('POST', uri)
         ..files.add(http.MultipartFile.fromBytes('image', bytes, filename: fileName));
-      final streamed = await request.send();
+      final streamed = await request.send().timeout(const Duration(seconds: 15));
       final body = await streamed.stream.bytesToString();
       final data = jsonDecode(body);
       if (streamed.statusCode == 422 && data is Map && data['code'] == 'AI_IMAGE_BLOCKED') {
         throw Exception('Imagen rechazada: parece generada por IA. Sube una fotografía o imagen real.');
       }
       if (data is Map && data['ok'] == true) {
-        return (data['imageUrl'] as String?) ?? '';
+        final url = (data['imageUrl'] as String?)?.trim() ?? '';
+        if (url.isNotEmpty) return url;
       }
-      throw Exception((data is Map ? data['error'] : null) ?? 'Error al subir la imagen');
-    } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('No se pudo conectar con el servidor de imágenes');
+    } on Exception catch (e) {
+      // Si es AI_IMAGE_BLOCKED, relanzar — no hacer fallback
+      if (e.toString().contains('Imagen rechazada')) rethrow;
+      // Si es otro error, intentar con PHP
+    } catch (_) {
+      // Error no-Exception: continuar con fallback
     }
+
+    // Intento 2: PHP CALL BUNKER_UPLOAD_IMAGE
+    try {
+      final result = _map(
+        await BunkerDB.consulta(
+          'CALL BUNKER_UPLOAD_IMAGE',
+          params: <String, dynamic>{
+            'content_b64': base64Encode(bytes),
+            'file_name': fileName,
+          },
+        ),
+      );
+      if (result != null && result['ok'] == true) {
+        final url = (result['imageUrl'] as String?)?.trim() ?? '';
+        if (url.isNotEmpty) return url;
+      }
+    } catch (_) {
+      // Si PHP también falla, usar data URL
+    }
+
+    // Fallback final: data URL (comportamiento original)
+    return _dataUrl(bytes, fileName);
   }
 
   Future<bool> hasUserSignature({required int userId}) async {

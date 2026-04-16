@@ -53,7 +53,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (result.ok && result.profile != null) {
       _publicNameController.text = result.profile!.publicName;
       _descriptionController.text = result.profile!.description;
-      _linksController.text = result.profile!.externalLinks ?? '';
       _photoUrl = result.profile!.photoUrl.trim().isEmpty
           ? null
           : result.profile!.photoUrl;
@@ -61,6 +60,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         publicName: result.profile!.publicName,
         photoUrl: _photoUrl,
       );
+      // Cargar enlaces externos desde perfilartista (separado para no romper login)
+      final links = await _authApi.fetchExternalLinks(userId: userId);
+      _linksController.text = links ?? '';
     }
     setState(() => _loading = false);
   }
@@ -68,20 +70,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _pickPhoto() async {
     final selected = await pickLocalImage();
     if (selected == null) return;
-    final url = await _feedApi.uploadPostImage(
-      bytes: selected.bytes,
-      fileName: selected.fileName,
-    );
-    setState(() {
-      _photoUrl = url;
-      _pickedImageBytes = selected.bytes;
-    });
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Foto cargada. Presiona "Guardar cambios".'),
-      ),
-    );
+    try {
+      final url = await _feedApi.uploadPostImage(
+        bytes: selected.bytes,
+        fileName: selected.fileName,
+      );
+      if (!mounted) return;
+      setState(() {
+        _photoUrl = url;
+        _pickedImageBytes = selected.bytes;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto cargada. Presiona "Guardar cambios".')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   Future<void> _save() async {

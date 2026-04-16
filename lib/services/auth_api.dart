@@ -390,14 +390,12 @@ class AuthApi {
       final rows = _asList(
         await BunkerDB.consulta(
           '''
-          SELECT u.id_usuario, u.nombre_usuario, u.nombre_publico, u.correo, u.rol,
-                 COALESCE(u.descripcion_breve, '') AS descripcion_breve,
-                 COALESCE(u.foto_perfil, '') AS foto_perfil,
-                 COALESCE(u.transfer_code, '') AS transfer_code,
-                 p.enlaces_externos
-          FROM usuario u
-          LEFT JOIN perfilartista p ON p.id_usuario = u.id_usuario
-          WHERE u.id_usuario = :id
+          SELECT id_usuario, nombre_usuario, nombre_publico, correo, rol,
+                 COALESCE(descripcion_breve, '') AS descripcion_breve,
+                 COALESCE(foto_perfil, '') AS foto_perfil,
+                 COALESCE(transfer_code, '') AS transfer_code
+          FROM usuario
+          WHERE id_usuario = :id
           LIMIT 1
           ''',
           params: <String, dynamic>{'id': userId},
@@ -407,7 +405,6 @@ class AuthApi {
         return UserProfileResult.fail('No se pudo cargar perfil');
       }
       final user = rows.first;
-      final links = (user['enlaces_externos'] ?? '').toString().trim();
       return UserProfileResult.ok(
         UserProfile(
           id: _parseUserId(user['id_usuario']) ?? 0,
@@ -418,11 +415,28 @@ class AuthApi {
           description: (user['descripcion_breve'] ?? '').toString(),
           photoUrl: (user['foto_perfil'] ?? '').toString(),
           transferCode: (user['transfer_code'] ?? '').toString(),
-          externalLinks: links.isEmpty ? null : links,
         ),
       );
     } catch (_) {
       return UserProfileResult.fail('No se pudo cargar perfil');
+    }
+  }
+
+  /// Obtiene los enlaces externos del perfil (tabla perfilartista).
+  /// Retorna null si la tabla/columna no existe o no hay registro.
+  Future<String?> fetchExternalLinks({required int userId}) async {
+    try {
+      final rows = _asList(
+        await BunkerDB.consulta(
+          'SELECT enlaces_externos FROM perfilartista WHERE id_usuario = :id LIMIT 1',
+          params: <String, dynamic>{'id': userId},
+        ),
+      );
+      if (rows.isEmpty) return null;
+      final val = (rows.first['enlaces_externos'] ?? '').toString().trim();
+      return val.isEmpty ? null : val;
+    } catch (_) {
+      return null;
     }
   }
 
