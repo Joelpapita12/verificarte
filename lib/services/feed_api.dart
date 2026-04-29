@@ -134,7 +134,15 @@ class FeedApi {
             SELECT COUNT(*)
             FROM favorito f
             WHERE f.id_publicacion = p.id_publicacion
-          ) AS favorite_count
+          ) AS favorite_count,
+          (
+            SELECT COUNT(*) FROM `like` lu
+            WHERE lu.id_publicacion = p.id_publicacion AND lu.id_usuario = :like_uid
+          ) AS liked_by_me,
+          (
+            SELECT COUNT(*) FROM favorito fu
+            WHERE fu.id_publicacion = p.id_publicacion AND fu.id_usuario = :fav_uid
+          ) AS favorited_by_me
         FROM publicacion p
         JOIN usuario u ON u.id_usuario = p.id_artista
         LEFT JOIN obradetalle od ON od.id_publicacion = p.id_publicacion
@@ -142,7 +150,7 @@ class FeedApi {
         ORDER BY p.fecha_publicacion DESC
         LIMIT 50
         ''',
-        params: params,
+        params: {...params, 'like_uid': userId ?? 0, 'fav_uid': userId ?? 0},
       ),
     );
 
@@ -197,55 +205,33 @@ class FeedApi {
     return rows.map(AccountSearchDto.fromJson).toList();
   }
 
-  static const String _nodeApiUrl = 'https://verificarte.softapatio.mx:8090';
+  static const String _uploadUrl = 'https://verificarte.softapatio.mx/bunker_upload.php';
+  static const String _apiKey = 'T4t3W4r1_S3cr3t_2026_X';
 
   Future<String> uploadPostImage({
     required Uint8List bytes,
     required String fileName,
   }) async {
-    // Intento 1: Node.js con validación IA
     try {
-      final uri = Uri.parse('$_nodeApiUrl/api/upload/image');
-      final request = http.MultipartRequest('POST', uri)
-        ..files.add(http.MultipartFile.fromBytes('image', bytes, filename: fileName));
-      final streamed = await request.send().timeout(const Duration(seconds: 15));
-      final body = await streamed.stream.bytesToString();
-      final data = jsonDecode(body);
-      if (streamed.statusCode == 422 && data is Map && data['code'] == 'AI_IMAGE_BLOCKED') {
-        throw Exception('Imagen rechazada: parece generada por IA. Sube una fotografía o imagen real.');
-      }
+      final response = await http.post(
+        Uri.parse(_uploadUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': _apiKey,
+        },
+        body: jsonEncode(<String, dynamic>{
+          'content_b64': base64Encode(bytes),
+          'file_name': fileName,
+        }),
+      );
+      final data = jsonDecode(response.body);
       if (data is Map && data['ok'] == true) {
         final url = (data['imageUrl'] as String?)?.trim() ?? '';
         if (url.isNotEmpty) return url;
       }
-    } on Exception catch (e) {
-      // Si es AI_IMAGE_BLOCKED, relanzar — no hacer fallback
-      if (e.toString().contains('Imagen rechazada')) rethrow;
-      // Si es otro error, intentar con PHP
-    } catch (_) {
-      // Error no-Exception: continuar con fallback
-    }
+    } catch (_) {}
 
-    // Intento 2: PHP CALL BUNKER_UPLOAD_IMAGE
-    try {
-      final result = _map(
-        await BunkerDB.consulta(
-          'CALL BUNKER_UPLOAD_IMAGE',
-          params: <String, dynamic>{
-            'content_b64': base64Encode(bytes),
-            'file_name': fileName,
-          },
-        ),
-      );
-      if (result != null && result['ok'] == true) {
-        final url = (result['imageUrl'] as String?)?.trim() ?? '';
-        if (url.isNotEmpty) return url;
-      }
-    } catch (_) {
-      // Si PHP también falla, usar data URL
-    }
-
-    // Fallback final: data URL (comportamiento original)
+    // Fallback: data URL
     return _dataUrl(bytes, fileName);
   }
 
@@ -799,31 +785,39 @@ class FeedApi {
             SELECT COUNT(*)
             FROM mensaje mu
             WHERE mu.id_emisor = t.other_id
-              AND mu.id_receptor = :user_id
+              AND mu.id_receptor = :uid1
               AND mu.leido = 0
           ) AS unread_count,
           COALESCE(cm.pinned, 0) AS pinned,
           COALESCE(cm.blocked, 0) AS blocked
         FROM (
           SELECT
-            CASE WHEN id_emisor = :user_id THEN id_receptor ELSE id_emisor END AS other_id,
+            CASE WHEN id_emisor = :uid2 THEN id_receptor ELSE id_emisor END AS other_id,
             MAX(fecha) AS last_time
           FROM mensaje
-          WHERE id_emisor = :user_id OR id_receptor = :user_id
+          WHERE id_emisor = :uid3 OR id_receptor = :uid4
           GROUP BY other_id
         ) t
         JOIN mensaje m ON (
-          ((m.id_emisor = :user_id AND m.id_receptor = t.other_id)
-            OR (m.id_emisor = t.other_id AND m.id_receptor = :user_id))
+          ((m.id_emisor = :uid5 AND m.id_receptor = t.other_id)
+            OR (m.id_emisor = t.other_id AND m.id_receptor = :uid6))
           AND m.fecha = t.last_time
         )
         JOIN usuario u ON u.id_usuario = t.other_id
         LEFT JOIN chatmeta cm
-          ON cm.id_usuario = :user_id AND cm.id_otro_usuario = t.other_id
+          ON cm.id_usuario = :uid7 AND cm.id_otro_usuario = t.other_id
         WHERE COALESCE(cm.deleted, 0) = 0
         ORDER BY COALESCE(cm.pinned, 0) DESC, t.last_time DESC
         ''',
-        params: <String, dynamic>{'user_id': userId},
+        params: <String, dynamic>{
+          'uid1': userId,
+          'uid2': userId,
+          'uid3': userId,
+          'uid4': userId,
+          'uid5': userId,
+          'uid6': userId,
+          'uid7': userId,
+        },
       ),
     );
     return rows.map(ChatThreadDto.fromJson).toList();
@@ -839,10 +833,15 @@ class FeedApi {
         SELECT id_mensaje, id_emisor, id_receptor, contenido, fecha, leido
         FROM mensaje
         WHERE (id_emisor = :user_id AND id_receptor = :other_id)
-           OR (id_emisor = :other_id AND id_receptor = :user_id)
+           OR (id_emisor = :other_id2 AND id_receptor = :user_id2)
         ORDER BY fecha ASC
         ''',
-        params: <String, dynamic>{'user_id': userId, 'other_id': otherUserId},
+        params: <String, dynamic>{
+          'user_id': userId,
+          'other_id': otherUserId,
+          'user_id2': userId,
+          'other_id2': otherUserId,
+        },
       ),
     );
     return rows.map(ChatMessageDto.fromJson).toList();
@@ -1079,7 +1078,7 @@ class FeedApi {
           un.nombre_publico AS nuevo_publico
         FROM historialpropiedad h
         LEFT JOIN usuario ua ON ua.id_usuario = h.id_propietario_anterior
-        LEFT JOIN usuario un ON un.id_usuario = h.id_nuevo_propietario
+        LEFT JOIN usuario un ON un.id_usuario = h.id_propietario_nuevo
         WHERE h.id_publicacion = :post_id
           $whereEdition
         ORDER BY h.fecha_transferencia DESC
@@ -1240,7 +1239,7 @@ class FeedApi {
     await BunkerDB.consulta(
       '''
       INSERT INTO historialpropiedad (
-        id_publicacion, id_edicion, id_propietario_anterior, id_nuevo_propietario, mostrar_nombre
+        id_publicacion, id_edicion, id_propietario_anterior, id_propietario_nuevo, mostrar_nombre
       ) VALUES (
         :post_id, :edition_id, :previous_id, :target_id, 1
       )
@@ -1259,12 +1258,17 @@ class FeedApi {
       await BunkerDB.consulta(
         '''
         SELECT
-          (SELECT COUNT(*) FROM `like` l JOIN publicacion p ON p.id_publicacion = l.id_publicacion WHERE p.id_artista = :artist_id AND p.activa = 1) AS likes,
-          (SELECT COUNT(*) FROM comentario c JOIN publicacion p ON p.id_publicacion = c.id_publicacion WHERE p.id_artista = :artist_id AND p.activa = 1) AS comments,
-          (SELECT COUNT(*) FROM favorito f JOIN publicacion p ON p.id_publicacion = f.id_publicacion WHERE p.id_artista = :artist_id AND p.activa = 1) AS favorites,
-          (SELECT COUNT(*) FROM mensaje m WHERE m.id_receptor = :artist_id) AS messages
+          (SELECT COUNT(*) FROM `like` l JOIN publicacion p ON p.id_publicacion = l.id_publicacion WHERE p.id_artista = :aid1 AND p.activa = 1) AS likes,
+          (SELECT COUNT(*) FROM comentario c JOIN publicacion p ON p.id_publicacion = c.id_publicacion WHERE p.id_artista = :aid2 AND p.activa = 1) AS comments,
+          (SELECT COUNT(*) FROM favorito f JOIN publicacion p ON p.id_publicacion = f.id_publicacion WHERE p.id_artista = :aid3 AND p.activa = 1) AS favorites,
+          (SELECT COUNT(*) FROM mensaje m WHERE m.id_receptor = :aid4) AS messages
         ''',
-        params: <String, dynamic>{'artist_id': artistId},
+        params: <String, dynamic>{
+          'aid1': artistId,
+          'aid2': artistId,
+          'aid3': artistId,
+          'aid4': artistId,
+        },
       ),
     );
     final likers = _rows(

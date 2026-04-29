@@ -84,6 +84,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     );
     if (!mounted) return;
     if (!result.ok) {
+      if (result.message == 'Cuenta ya creada') {
+        final loginResult = await _authApi.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        if (!mounted) return;
+        if (loginResult.ok) {
+          CurrentUserStore.setUserId(loginResult.userId);
+          CurrentUserStore.setRole(loginResult.role ?? 'seguidor');
+          Navigator.of(context).pushReplacementNamed(LoadingScreen.routeName);
+          return;
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result.message ?? 'No se pudo crear la cuenta')),
       );

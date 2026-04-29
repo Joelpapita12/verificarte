@@ -365,7 +365,7 @@ class AdminApi {
     await BunkerDB.consulta(
       '''
       INSERT INTO historialpropiedad (
-        id_publicacion, id_edicion, id_propietario_anterior, id_nuevo_propietario, mostrar_nombre
+        id_publicacion, id_edicion, id_propietario_anterior, id_propietario_nuevo, mostrar_nombre
       ) VALUES (
         :post_id, :edition_id, :previous_id, :target_id, 1
       )

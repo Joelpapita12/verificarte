@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+
+import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/app_buttons.dart';
@@ -23,14 +25,55 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _googleLoading = false;
+  bool _loading = false;
   final _authApi = AuthApi();
+
+  // Brute-force protection
+  static int _failedAttempts = 0;
+  static DateTime? _lockedUntil;
+  int _lockoutSecondsLeft = 0;
+  Timer? _lockoutTimer;
+
+  static const int _maxAttempts = 5;
+  static const int _lockoutSeconds = 60;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLockout();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _lockoutTimer?.cancel();
     super.dispose();
   }
+
+  void _checkLockout() {
+    final until = _lockedUntil;
+    if (until == null || DateTime.now().isAfter(until)) {
+      _lockoutSecondsLeft = 0;
+      return;
+    }
+    _startCountdown(until.difference(DateTime.now()).inSeconds + 1);
+  }
+
+  void _startCountdown(int seconds) {
+    _lockoutTimer?.cancel();
+    setState(() { _lockoutSecondsLeft = seconds; });
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      setState(() { _lockoutSecondsLeft--; });
+      if (_lockoutSecondsLeft <= 0) {
+        t.cancel();
+        setState(() { _lockoutSecondsLeft = 0; });
+      }
+    });
+  }
+
+  bool get _isLocked => _lockoutSecondsLeft > 0;
 
   String? _emailValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -48,19 +91,23 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (_isLocked) return;
+    if (!_formKey.currentState!.validate()) return;
     _login();
   }
 
   Future<void> _login() async {
+    if (_loading || _isLocked) return;
+    setState(() { _loading = true; });
     final result = await _authApi.login(
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
     );
     if (!mounted) return;
+    setState(() { _loading = false; });
     if (result.ok) {
+      _failedAttempts = 0;
+      _lockedUntil = null;
       ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
       CurrentUserStore.setUserId(result.userId);
       CurrentUserStore.setRole(result.role);
@@ -76,6 +123,12 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed(LoadingScreen.routeName);
     } else {
+      _failedAttempts++;
+      if (_failedAttempts >= _maxAttempts) {
+        _lockedUntil = DateTime.now().add(const Duration(seconds: _lockoutSeconds));
+        _failedAttempts = 0;
+        _startCountdown(_lockoutSeconds);
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result.message ?? 'No se pudo iniciar sesión')),
       );
@@ -206,9 +259,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 22),
                               PrimaryButton(
-                                label: 'Ingresar',
-                                onPressed: _submit,
+                                label: _isLocked
+                                    ? 'Bloqueado ($_lockoutSecondsLeft s)'
+                                    : _loading ? 'Ingresando...' : 'Ingresar',
+                                onPressed: (_isLocked || _loading) ? null : _submit,
                               ),
+                              if (_isLocked)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text(
+                                    'Demasiados intentos fallidos. Espera $_lockoutSecondsLeft segundos.',
+                                    style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
                               const SizedBox(height: 10),
                               OutlinedButton.icon(
                                 onPressed: _googleLoading

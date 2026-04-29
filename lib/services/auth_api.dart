@@ -59,7 +59,7 @@ class AuthApi {
         return 'administrador';
       case 'buyer':
       case 'comprador':
-        return 'comprador';
+        return 'seguidor';
       default:
         return 'seguidor';
     }

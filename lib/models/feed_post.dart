@@ -22,6 +22,8 @@ class FeedPostDto {
     required this.propietarioCuenta,
     required this.propietarioAnonimo,
     required this.ediciones,
+    this.likedByMe = false,
+    this.favoritedByMe = false,
   });
 
   final int id;
@@ -44,6 +46,25 @@ class FeedPostDto {
   final String? propietarioCuenta;
   final bool propietarioAnonimo;
   final List<FeedPostEditionDto> ediciones;
+  final bool likedByMe;
+  final bool favoritedByMe;
+
+  FeedPostDto copyWith({int? likeCount, int? commentCount, int? favoriteCount, bool? likedByMe, bool? favoritedByMe}) {
+    return FeedPostDto(
+      id: id, artistId: artistId, title: title, description: description,
+      artistName: artistName, publicName: publicName, createdAt: createdAt,
+      imageUrl: imageUrl, likeCount: likeCount ?? this.likeCount,
+      commentCount: commentCount ?? this.commentCount,
+      favoriteCount: favoriteCount ?? this.favoriteCount,
+      esMayor18: esMayor18, edicion: edicion,
+      nombreAutorCompleto: nombreAutorCompleto, tecnicaMateriales: tecnicaMateriales,
+      anioCreacion: anioCreacion, dimensiones: dimensiones,
+      propietarioCuenta: propietarioCuenta, propietarioAnonimo: propietarioAnonimo,
+      ediciones: ediciones,
+      likedByMe: likedByMe ?? this.likedByMe,
+      favoritedByMe: favoritedByMe ?? this.favoritedByMe,
+    );
+  }
 
   factory FeedPostDto.fromJson(Map<String, dynamic> json) {
     int? toInt(dynamic v) {
@@ -82,6 +103,14 @@ class FeedPostDto {
           json['propietario_anonimo'] == 1 ||
           json['propietario_anonimo']?.toString() == '1',
       ediciones: FeedPostEditionDto.parseList(json['ediciones_json']),
+      likedByMe:
+          json['liked_by_me'] == true ||
+          json['liked_by_me'] == 1 ||
+          json['liked_by_me']?.toString() == '1',
+      favoritedByMe:
+          json['favorited_by_me'] == true ||
+          json['favorited_by_me'] == 1 ||
+          json['favorited_by_me']?.toString() == '1',
     );
   }
 }

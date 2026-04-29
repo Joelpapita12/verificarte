@@ -30,7 +30,6 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
 
   bool _loading = true;
   String? _errorMessage;
-  bool _searchFiltered = false;
 
   List<FeedPostDto> _posts = <FeedPostDto>[];
   List<NotificationDto> _notifications = <NotificationDto>[];
@@ -52,9 +51,9 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
     super.dispose();
   }
 
-  Future<void> _loadData({String? query}) async {
+  Future<void> _loadData({String? query, bool silent = false}) async {
     setState(() {
-      _loading = true;
+      if (!silent) _loading = true;
       _errorMessage = null;
     });
 
@@ -66,7 +65,6 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
 
       List<NotificationDto> notifications = <NotificationDto>[];
       if (_userId != null) {
-        await _feedApi.fetchChatThreads(_userId!);
         notifications = await _feedApi.fetchNotifications(_userId!);
       }
 
@@ -74,13 +72,12 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
       setState(() {
         _posts = posts;
         _notifications = notifications;
-        _searchFiltered = query != null && query.trim().isNotEmpty;
         _loading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'No se pudo cargar la feed.';
+        if (!silent) _errorMessage = 'No se pudo cargar la feed.';
         _loading = false;
       });
     }
@@ -206,30 +203,39 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
     await _loadData();
   }
 
+  void _updatePost(int postId, FeedPostDto updated) {
+    final index = _posts.indexWhere((p) => p.id == postId);
+    if (index >= 0) setState(() { _posts[index] = updated; });
+  }
+
   Future<void> _toggleLike(FeedPostDto post) async {
     final int? userId = _userId;
-    if (userId == null) {
-      _showAuthRequiredMessage();
-      return;
-    }
+    if (userId == null) { _showAuthRequiredMessage(); return; }
+    final nowLiked = !post.likedByMe;
+    _updatePost(post.id, post.copyWith(
+      likedByMe: nowLiked,
+      likeCount: nowLiked ? post.likeCount + 1 : (post.likeCount - 1).clamp(0, 999999),
+    ));
     try {
       await _feedApi.toggleLike(userId: userId, postId: post.id);
-      await _loadData(query: _searchFiltered ? post.title : null);
     } catch (error) {
+      _updatePost(post.id, post);
       _showError(error);
     }
   }
 
   Future<void> _toggleFavorite(FeedPostDto post) async {
     final int? userId = _userId;
-    if (userId == null) {
-      _showAuthRequiredMessage();
-      return;
-    }
+    if (userId == null) { _showAuthRequiredMessage(); return; }
+    final nowFavorited = !post.favoritedByMe;
+    _updatePost(post.id, post.copyWith(
+      favoritedByMe: nowFavorited,
+      favoriteCount: nowFavorited ? post.favoriteCount + 1 : (post.favoriteCount - 1).clamp(0, 999999),
+    ));
     try {
       await _feedApi.toggleFavorite(userId: userId, postId: post.id);
-      await _loadData(query: _searchFiltered ? post.title : null);
     } catch (error) {
+      _updatePost(post.id, post);
       _showError(error);
     }
   }
@@ -245,9 +251,9 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
         postId: post.id,
         currentUserId: userId,
         requireAuth: _showAuthRequiredMessage,
+        onCountChanged: (count) => _updatePost(post.id, post.copyWith(commentCount: count)),
       ),
     );
-    await _loadData(query: _searchFiltered ? post.title : null);
   }
 
   Future<void> _sendMessageToArtist(FeedPostDto post) async {
@@ -1426,12 +1432,14 @@ class _CommentsSheet extends StatefulWidget {
     required this.postId,
     required this.currentUserId,
     required this.requireAuth,
+    this.onCountChanged,
   });
 
   final FeedApi feedApi;
   final int postId;
   final int? currentUserId;
   final VoidCallback requireAuth;
+  final void Function(int count)? onCountChanged;
 
   @override
   State<_CommentsSheet> createState() => _CommentsSheetState();
@@ -1463,6 +1471,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         _comments = comments;
         _loading = false;
       });
+      widget.onCountChanged?.call(comments.length);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -1490,6 +1499,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       );
       _controller.clear();
       await _loadComments();
+      widget.onCountChanged?.call(_comments.length);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
