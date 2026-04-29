@@ -71,12 +71,14 @@ class AdminApi {
         '''
         SELECT id_usuario, nombre_usuario, nombre_publico, correo, rol, estado_cuenta, transfer_code
         FROM usuario
-        WHERE (:query = '' OR nombre_usuario LIKE :query_like OR nombre_publico LIKE :query_like OR correo LIKE :query_like)
+        WHERE (:query = '' OR nombre_usuario LIKE :query_like1 OR nombre_publico LIKE :query_like2 OR correo LIKE :query_like3)
         ORDER BY fecha_registro DESC
         ''',
         params: <String, dynamic>{
           'query': q,
-          'query_like': '%$q%',
+          'query_like1': '%$q%',
+          'query_like2': '%$q%',
+          'query_like3': '%$q%',
         },
       ),
     );
@@ -97,14 +99,16 @@ class AdminApi {
         SELECT p.id_publicacion, p.titulo, p.descripcion_corta, p.activa, p.id_artista, u.nombre_usuario
         FROM publicacion p
         JOIN usuario u ON u.id_usuario = p.id_artista
-        WHERE (:query = '' OR p.titulo LIKE :query_like OR u.nombre_usuario LIKE :query_like OR u.nombre_publico LIKE :query_like)
+        WHERE (:query = '' OR p.titulo LIKE :query_like1 OR u.nombre_usuario LIKE :query_like2 OR u.nombre_publico LIKE :query_like3)
           AND (:date_from IS NULL OR DATE(p.fecha_publicacion) >= :date_from)
           AND (:date_to IS NULL OR DATE(p.fecha_publicacion) <= :date_to)
         ORDER BY p.fecha_publicacion DESC
         ''',
         params: <String, dynamic>{
           'query': q,
-          'query_like': '%$q%',
+          'query_like1': '%$q%',
+          'query_like2': '%$q%',
+          'query_like3': '%$q%',
           'date_from': fromDate?.toIso8601String().substring(0, 10),
           'date_to': toDate?.toIso8601String().substring(0, 10),
         },

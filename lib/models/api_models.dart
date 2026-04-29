@@ -356,9 +356,16 @@ class PostCommentDto {
   final DateTime createdAt;
 
   factory PostCommentDto.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic v) {
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? 0;
+      return 0;
+    }
+
     return PostCommentDto(
-      commentId: json['id_comentario'] as int? ?? 0,
-      userId: json['id_usuario'] as int? ?? 0,
+      commentId: toInt(json['id_comentario']),
+      userId: toInt(json['id_usuario']),
       username: (json['nombre_usuario'] ?? '').toString(),
       publicName: (json['nombre_publico'] ?? '').toString(),
       content: (json['contenido'] ?? '').toString(),
@@ -386,14 +393,21 @@ class ArtistStatsDto {
   final List<InteractionAccountDto> commenters;
 
   factory ArtistStatsDto.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic v) {
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? 0;
+      return 0;
+    }
+
     final totals = (json['totals'] as Map<String, dynamic>? ?? {});
     final likersRaw = json['likers'] as List<dynamic>? ?? [];
     final commentersRaw = json['commenters'] as List<dynamic>? ?? [];
     return ArtistStatsDto(
-      likes: (totals['likes'] ?? 0) as int,
-      comments: (totals['comments'] ?? 0) as int,
-      favorites: (totals['favorites'] ?? 0) as int,
-      messages: (totals['messages'] ?? 0) as int,
+      likes: toInt(totals['likes']),
+      comments: toInt(totals['comments']),
+      favorites: toInt(totals['favorites']),
+      messages: toInt(totals['messages']),
       likers: likersRaw
           .map((e) => InteractionAccountDto.fromJson(e as Map<String, dynamic>))
           .toList(),

@@ -66,10 +66,17 @@ class ChatMessageDto {
   final bool read;
 
   factory ChatMessageDto.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic v) {
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? 0;
+      return 0;
+    }
+
     return ChatMessageDto(
-      id: json['id_mensaje'] as int? ?? 0,
-      senderId: json['id_emisor'] as int? ?? 0,
-      receiverId: json['id_receptor'] as int? ?? 0,
+      id: toInt(json['id_mensaje']),
+      senderId: toInt(json['id_emisor']),
+      receiverId: toInt(json['id_receptor']),
       content: (json['contenido'] ?? '').toString(),
       createdAt:
           DateTime.tryParse(json['fecha']?.toString() ?? '') ?? DateTime.now(),

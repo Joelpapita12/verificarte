@@ -251,7 +251,10 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
         postId: post.id,
         currentUserId: userId,
         requireAuth: _showAuthRequiredMessage,
-        onCountChanged: (count) => _updatePost(post.id, post.copyWith(commentCount: count)),
+        onCountChanged: (count) {
+          final current = _posts.firstWhere((p) => p.id == post.id, orElse: () => post);
+          _updatePost(post.id, current.copyWith(commentCount: count));
+        },
       ),
     );
   }
