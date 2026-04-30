@@ -85,9 +85,11 @@ class FeedApi {
     final q = query?.trim() ?? '';
     if (q.isNotEmpty) {
       where.add(
-        '(p.titulo LIKE :query OR u.nombre_usuario LIKE :query OR u.nombre_publico LIKE :query)',
+        '(p.titulo LIKE :query1 OR u.nombre_usuario LIKE :query2 OR u.nombre_publico LIKE :query3)',
       );
-      params['query'] = '%$q%';
+      params['query1'] = '%$q%';
+      params['query2'] = '%$q%';
+      params['query3'] = '%$q%';
     }
 
     if (userId != null) {
