@@ -147,7 +147,12 @@ class FeedApi {
           ) AS favorited_by_me
         FROM publicacion p
         JOIN usuario u ON u.id_usuario = p.id_artista
-        LEFT JOIN obradetalle od ON od.id_publicacion = p.id_publicacion
+        LEFT JOIN (
+          SELECT id_publicacion, edicion, nombre_autor_completo,
+                 tecnica_materiales, anio_creacion, dimensiones, declaracion_autenticidad
+          FROM obradetalle
+          GROUP BY id_publicacion
+        ) od ON od.id_publicacion = p.id_publicacion
         WHERE ${where.join(' AND ')}
         ORDER BY p.fecha_publicacion DESC
         LIMIT 50
