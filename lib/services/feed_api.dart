@@ -212,34 +212,32 @@ class FeedApi {
     return rows.map(AccountSearchDto.fromJson).toList();
   }
 
-  static const String _uploadUrl = 'https://verificarte.softapatio.mx/bunker_upload.php';
-  static const String _apiKey = 'T4t3W4r1_S3cr3t_2026_X';
+  static const String _nodeApiUrl = 'https://verificarte.softapatio.mx:8090';
 
   Future<String> uploadPostImage({
     required Uint8List bytes,
     required String fileName,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse(_uploadUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': _apiKey,
-        },
-        body: jsonEncode(<String, dynamic>{
-          'content_b64': base64Encode(bytes),
-          'file_name': fileName,
-        }),
-      );
-      final data = jsonDecode(response.body);
+      final uri = Uri.parse('$_nodeApiUrl/api/upload/image');
+      final request = http.MultipartRequest('POST', uri)
+        ..files.add(http.MultipartFile.fromBytes('image', bytes, filename: fileName));
+      final streamed = await request.send();
+      final body = await streamed.stream.bytesToString();
+      final data = jsonDecode(body);
+      if (streamed.statusCode == 422 && data is Map && data['code'] == 'AI_IMAGE_BLOCKED') {
+        throw Exception('Imagen rechazada: parece generada por IA. Sube una fotografía o imagen real.');
+      }
       if (data is Map && data['ok'] == true) {
         final url = (data['imageUrl'] as String?)?.trim() ?? '';
         if (url.isNotEmpty) return url;
       }
-    } catch (_) {}
-
-    // Fallback: data URL
-    return _dataUrl(bytes, fileName);
+      throw Exception((data is Map ? data['error'] : null) ?? 'Error al subir la imagen');
+    } on Exception {
+      rethrow;
+    } catch (_) {
+      throw Exception('No se pudo conectar con el servidor de imágenes');
+    }
   }
 
   Future<bool> hasUserSignature({required int userId}) async {

@@ -352,7 +352,10 @@ class _PerfilArtistaScreenState extends State<PerfilArtistaScreen> {
               ListTile(
                 leading: const Icon(Icons.chat_bubble_outline),
                 title: const Text('Enviar mensaje'),
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _openMessageToProfile();
+                },
               ),
           ],
         ),

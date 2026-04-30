@@ -46,7 +46,7 @@ class _TwoFactorScreenState extends State<TwoFactorScreen> {
                   context,
                 ).pushReplacementNamed(LoadingScreen.routeName);
               },
-              child: const Text('Ir a iniciar sesión'),
+              child: const Text('Continuar'),
             ),
           ],
         );
