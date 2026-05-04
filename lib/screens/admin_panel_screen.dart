@@ -43,6 +43,13 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   void initState() {
     super.initState();
+    final role = CurrentUserStore.role ?? '';
+    if (role != 'admin') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).pop();
+      });
+      return;
+    }
     _load();
   }
 

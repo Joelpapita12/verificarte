@@ -181,11 +181,27 @@ class FeedApi {
         ),
       );
 
+      final estadoObra = (row['estado_obra'] ?? '').toString();
+      final decl = (row['declaracion_autenticidad'] ?? '').toString();
+      String? propietarioCuenta;
+      bool propietarioAnonimo = false;
+      if (estadoObra == 'con_propietario') {
+        final match = RegExp(r'Propietario:\s*(.*)$').firstMatch(decl);
+        if (match != null) {
+          final val = (match.group(1) ?? '').trim();
+          if (val == 'anonimo') {
+            propietarioAnonimo = true;
+          } else if (val.isNotEmpty) {
+            propietarioCuenta = val;
+          }
+        }
+      }
+
       final dto = FeedPostDto.fromJson(<String, dynamic>{
         ...row,
         'descripcion_corta': row['descripcion_corta'],
-        'propietario_cuenta': null,
-        'propietario_anonimo': 0,
+        'propietario_cuenta': propietarioCuenta,
+        'propietario_anonimo': propietarioAnonimo ? 1 : 0,
         'ediciones_json': editions,
       });
       result.add(dto);
@@ -202,11 +218,11 @@ class FeedApi {
         SELECT id_usuario, nombre_usuario, nombre_publico, rol, foto_perfil
         FROM usuario
         WHERE estado_cuenta = 'activa'
-          AND (nombre_usuario LIKE :query OR nombre_publico LIKE :query)
+          AND (nombre_usuario LIKE :query1 OR nombre_publico LIKE :query2)
         ORDER BY nombre_publico ASC, nombre_usuario ASC
         LIMIT 30
         ''',
-        params: <String, dynamic>{'query': '%$q%'},
+        params: <String, dynamic>{'query1': '%$q%', 'query2': '%$q%'},
       ),
     );
     return rows.map(AccountSearchDto.fromJson).toList();
@@ -565,9 +581,11 @@ class FeedApi {
         'dimensiones': finalDimensions.isEmpty ? null : finalDimensions,
         'edicion': edicion?.trim().isEmpty == true ? null : edicion?.trim(),
         'autor': finalAuthor.isEmpty ? null : finalAuthor,
-        'declaracion': propietarioAnonimo
-            ? 'Propietario: anonimo'
-            : 'Propietario: ${propietarioCuenta?.trim() ?? ''}',
+        'declaracion': estadoObra == 'con_propietario'
+            ? (propietarioAnonimo
+                ? 'Propietario: anonimo'
+                : 'Propietario: ${propietarioCuenta?.trim() ?? ''}')
+            : '',
         'post_id': postId,
       },
     );
