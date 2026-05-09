@@ -100,8 +100,8 @@ class AdminApi {
         FROM publicacion p
         JOIN usuario u ON u.id_usuario = p.id_artista
         WHERE (:query = '' OR p.titulo LIKE :query_like1 OR u.nombre_usuario LIKE :query_like2 OR u.nombre_publico LIKE :query_like3)
-          AND (:date_from IS NULL OR DATE(p.fecha_publicacion) >= :date_from)
-          AND (:date_to IS NULL OR DATE(p.fecha_publicacion) <= :date_to)
+          AND (:date_from_check IS NULL OR DATE(p.fecha_publicacion) >= :date_from_val)
+          AND (:date_to_check IS NULL OR DATE(p.fecha_publicacion) <= :date_to_val)
         ORDER BY p.fecha_publicacion DESC
         ''',
         params: <String, dynamic>{
@@ -109,8 +109,10 @@ class AdminApi {
           'query_like1': '%$q%',
           'query_like2': '%$q%',
           'query_like3': '%$q%',
-          'date_from': fromDate?.toIso8601String().substring(0, 10),
-          'date_to': toDate?.toIso8601String().substring(0, 10),
+          'date_from_check': fromDate?.toIso8601String().substring(0, 10),
+          'date_from_val': fromDate?.toIso8601String().substring(0, 10),
+          'date_to_check': toDate?.toIso8601String().substring(0, 10),
+          'date_to_val': toDate?.toIso8601String().substring(0, 10),
         },
       ),
     );

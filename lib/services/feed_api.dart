@@ -1231,18 +1231,21 @@ class FeedApi {
         '''
         SELECT id_certificado, id_publicacion, id_edicion, id_propietario_actual
         FROM certificadodigital
-        WHERE (:certificate_id IS NULL OR id_certificado = :certificate_id)
-          AND (:post_id IS NULL OR id_publicacion = :post_id)
-          AND (:edition_id IS NULL OR id_edicion = :edition_id)
+        WHERE (:certificate_id_check IS NULL OR id_certificado = :certificate_id_val)
+          AND (:post_id_check IS NULL OR id_publicacion = :post_id_val)
+          AND (:edition_id_check IS NULL OR id_edicion = :edition_id_val)
           AND id_propietario_actual = :user_id
           AND activo = 1
         ORDER BY id_certificado ASC
         LIMIT 1
         ''',
         params: <String, dynamic>{
-          'certificate_id': certificateId,
-          'post_id': postId,
-          'edition_id': editionId,
+          'certificate_id_check': certificateId,
+          'certificate_id_val': certificateId,
+          'post_id_check': postId,
+          'post_id_val': postId,
+          'edition_id_check': editionId,
+          'edition_id_val': editionId,
           'user_id': userId,
         },
       ),

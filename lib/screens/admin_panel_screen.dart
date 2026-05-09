@@ -44,7 +44,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   void initState() {
     super.initState();
     final role = CurrentUserStore.role ?? '';
-    if (role != 'admin') {
+    if (role != 'administrador') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.of(context).pop();
       });
