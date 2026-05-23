@@ -56,6 +56,7 @@ class ChatMessageDto {
     required this.content,
     required this.createdAt,
     required this.read,
+    this.cifrado = false,
   });
 
   final int id;
@@ -64,6 +65,9 @@ class ChatMessageDto {
   final String content;
   final DateTime createdAt;
   final bool read;
+
+  /// true si el contenido está cifrado con E2EE (ECIES).
+  final bool cifrado;
 
   factory ChatMessageDto.fromJson(Map<String, dynamic> json) {
     int toInt(dynamic v) {
@@ -81,6 +85,22 @@ class ChatMessageDto {
       createdAt:
           DateTime.tryParse(json['fecha']?.toString() ?? '') ?? DateTime.now(),
       read: json['leido'] == true || json['leido'] == 1,
+      cifrado:
+          json['cifrado'] == true ||
+          json['cifrado'] == 1 ||
+          json['cifrado']?.toString() == '1',
+    );
+  }
+
+  ChatMessageDto copyWith({String? content}) {
+    return ChatMessageDto(
+      id: id,
+      senderId: senderId,
+      receiverId: receiverId,
+      content: content ?? this.content,
+      createdAt: createdAt,
+      read: read,
+      cifrado: cifrado,
     );
   }
 }

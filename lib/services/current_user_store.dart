@@ -1,5 +1,7 @@
 ﻿import 'package:flutter/foundation.dart';
 
+import 'e2e_crypto.dart';
+
 /// Almacena el estado global del usuario que ha iniciado sesión.
 ///
 /// Funciona como un singleton estático para acceder a los datos del usuario
@@ -9,12 +11,9 @@ class CurrentUserStore {
   static String? _role;
   static String? _publicName;
   static String? _photoUrl;
+  static E2eKeyPair? _ecKeyPair;
 
   /// Notificador que se actualiza cuando el perfil del usuario cambia.
-  ///
-  /// Los widgets pueden escuchar este notificador para reconstruirse
-  /// automáticamente cuando se actualizan los datos del perfil (p. ej., el avatar).
-  /// Se incrementa su valor para forzar la notificación.
   static final ValueNotifier<int> profileRevision = ValueNotifier<int>(0);
 
   static int? get userId => _userId;
@@ -22,12 +21,19 @@ class CurrentUserStore {
   static String? get publicName => _publicName;
   static String? get photoUrl => _photoUrl;
 
+  /// Keypair EC derivado en la sesión actual (null si no se derivó, p. ej. Google login).
+  static E2eKeyPair? get ecKeyPair => _ecKeyPair;
+
   static void setUserId(int? id) {
     _userId = id;
   }
 
   static void setRole(String? value) {
     _role = value;
+  }
+
+  static void setEcKeyPair(E2eKeyPair? keyPair) {
+    _ecKeyPair = keyPair;
   }
 
   /// Actualiza los datos del perfil y notifica a los oyentes.
@@ -43,6 +49,7 @@ class CurrentUserStore {
     _role = null;
     _publicName = null;
     _photoUrl = null;
+    _ecKeyPair = null;
     profileRevision.value++;
   }
 }

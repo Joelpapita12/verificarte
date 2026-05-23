@@ -9,6 +9,8 @@ import '../models/api_models.dart';
 import '../models/chat_message.dart';
 import '../models/feed_post.dart';
 import 'bunker_db.dart';
+import 'current_user_store.dart';
+import 'e2e_crypto.dart';
 
 class FeedApi {
   List<Map<String, dynamic>> _rows(dynamic value) {
@@ -493,9 +495,26 @@ class FeedApi {
             params: <String, dynamic>{'id': artistId},
           ),
         );
-        final signatureB64 = signatureRows.isEmpty
-            ? null
-            : signatureRows.first['firma_encriptada'];
+        // Firma ECDSA-SHA256 si hay keypair disponible; fallback a firma legada
+        final ecKeyPair = CurrentUserStore.ecKeyPair;
+        String? firmab64;
+        String algoritmo;
+        if (ecKeyPair != null) {
+          final payloadBytes = Uint8List.fromList(
+            payloadHash.codeUnits,
+          );
+          firmab64 = E2eCrypto.signPayload(
+            payload: payloadBytes,
+            privateKey: ecKeyPair.privateKey,
+          );
+          algoritmo = 'ECDSA_SHA256';
+        } else {
+          firmab64 = signatureRows.isEmpty
+              ? null
+              : signatureRows.first['firma_encriptada']?.toString();
+          algoritmo = 'sha256';
+        }
+
         await BunkerDB.consulta(
           '''
           INSERT INTO certificadodigital (
@@ -503,7 +522,7 @@ class FeedApi {
             payload_hash, firma_digital_b64, algoritmo_firma, huella_llave, timestamp_firma
           ) VALUES (
             :post_id, :owner_id, :link_unico, :codigo_qr, :edition_id,
-            :payload_hash, :firma_digital_b64, 'sha256', :huella_llave, NOW()
+            :payload_hash, :firma_digital_b64, :algoritmo, :huella_llave, NOW()
           )
           ''',
           params: <String, dynamic>{
@@ -513,7 +532,8 @@ class FeedApi {
             'codigo_qr': certToken,
             'edition_id': editionId <= 0 ? null : editionId,
             'payload_hash': payloadHash,
-            'firma_digital_b64': signatureB64,
+            'firma_digital_b64': firmab64,
+            'algoritmo': algoritmo,
             'huella_llave': _sha256('$artistId|$payloadHash'),
           },
         );
@@ -853,7 +873,8 @@ class FeedApi {
     final rows = _rows(
       await BunkerDB.consulta(
         '''
-        SELECT id_mensaje, id_emisor, id_receptor, contenido, fecha, leido
+        SELECT id_mensaje, id_emisor, id_receptor, contenido,
+               COALESCE(cifrado, 0) AS cifrado, fecha, leido
         FROM mensaje
         WHERE (id_emisor = :user_id AND id_receptor = :other_id)
            OR (id_emisor = :other_id2 AND id_receptor = :user_id2)
@@ -867,7 +888,36 @@ class FeedApi {
         },
       ),
     );
-    return rows.map(ChatMessageDto.fromJson).toList();
+    final msgs = rows.map(ChatMessageDto.fromJson).toList();
+
+    final keyPair = CurrentUserStore.ecKeyPair;
+    if (keyPair == null) return msgs;
+
+    return msgs.map((m) {
+      if (!m.cifrado) return m;
+      final plain = E2eCrypto.decryptMessage(
+        encryptedJson: m.content,
+        privateKey: keyPair.privateKey,
+      );
+      return m.copyWith(content: plain ?? '[Mensaje cifrado]');
+    }).toList();
+  }
+
+  /// Obtiene la clave pública EC de un usuario desde `usuarioclavedigital`.
+  Future<String?> _fetchRecipientPublicKey(int userId) async {
+    try {
+      final rows = _rows(
+        await BunkerDB.consulta(
+          'SELECT public_key_pem FROM usuarioclavedigital WHERE id_usuario = :id LIMIT 1',
+          params: <String, dynamic>{'id': userId},
+        ),
+      );
+      if (rows.isEmpty) return null;
+      final key = (rows.first['public_key_pem'] ?? '').toString().trim();
+      return key.isEmpty ? null : key;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> sendMessage({
@@ -875,12 +925,38 @@ class FeedApi {
     required int receiverId,
     required String content,
   }) async {
+    var finalContent = content.trim();
+    var cifrado = 0;
+
+    // Cifrar si el receptor tiene clave pública registrada
+    final senderKeyPair = CurrentUserStore.ecKeyPair;
+    if (senderKeyPair != null) {
+      final recipPubKey = await _fetchRecipientPublicKey(receiverId);
+      if (recipPubKey != null) {
+        try {
+          finalContent = E2eCrypto.encryptMessage(
+            plaintext: finalContent,
+            recipientPublicKeyB64: recipPubKey,
+          );
+          cifrado = 1;
+        } catch (_) {
+          // Si falla el cifrado, enviar en claro
+          finalContent = content.trim();
+          cifrado = 0;
+        }
+      }
+    }
+
     await BunkerDB.consulta(
-      'INSERT INTO mensaje (id_emisor, id_receptor, contenido) VALUES (:sender_id, :receiver_id, :content)',
+      '''
+      INSERT INTO mensaje (id_emisor, id_receptor, contenido, cifrado)
+      VALUES (:sender_id, :receiver_id, :content, :cifrado)
+      ''',
       params: <String, dynamic>{
         'sender_id': senderId,
         'receiver_id': receiverId,
-        'content': content.trim(),
+        'content': finalContent,
+        'cifrado': cifrado,
       },
     );
   }

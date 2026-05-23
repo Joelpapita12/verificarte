@@ -4,6 +4,8 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'bunker_db.dart';
+import 'current_user_store.dart';
+import 'e2e_crypto.dart';
 
 class AuthApi {
   static const String _googleClientId =
@@ -241,12 +243,73 @@ class AuthApi {
       if (state == 'eliminada') {
         return AuthResult.fail('Cuenta eliminada');
       }
-      return AuthResult.ok(
-        userId: _parseUserId(user['id_usuario']),
-        role: _parseRole(user['rol']),
-      );
+      final userId = _parseUserId(user['id_usuario']);
+      final role = _parseRole(user['rol']);
+
+      // Derivar keypair E2EE y registrar clave pública (fire-and-forget)
+      if (userId != null && password.isNotEmpty) {
+        _initE2eKeys(
+          password: password,
+          userId: userId,
+          email: email.trim().toLowerCase(),
+        );
+      }
+
+      return AuthResult.ok(userId: userId, role: role);
     } catch (_) {
       return AuthResult.fail('No se pudo iniciar sesión');
+    }
+  }
+
+  /// Deriva el keypair EC, lo almacena en CurrentUserStore y registra
+  /// la clave pública en la tabla `usuarioclavedigital`.
+  Future<void> _initE2eKeys({
+    required String password,
+    required int userId,
+    required String email,
+  }) async {
+    try {
+      // Migración de esquema (idempotente)
+      await BunkerDB.consulta(
+        '''
+        CREATE TABLE IF NOT EXISTS usuarioclavedigital (
+          id_clave BIGINT NOT NULL AUTO_INCREMENT,
+          id_usuario BIGINT NOT NULL,
+          public_key_pem TEXT NOT NULL,
+          private_key_encrypted TEXT,
+          fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (id_clave),
+          UNIQUE KEY uniq_user (id_usuario)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        ''',
+      );
+      await BunkerDB.consulta(
+        'ALTER TABLE mensaje ADD COLUMN IF NOT EXISTS cifrado TINYINT(1) NOT NULL DEFAULT 0',
+      );
+
+      // Derivar keypair (costoso: ~50,000 iteraciones PBKDF2 en JS)
+      final keyPair = E2eCrypto.deriveKeyPair(
+        password: password,
+        userId: userId,
+        email: email,
+      );
+      CurrentUserStore.setEcKeyPair(keyPair);
+
+      // Registrar/actualizar clave pública en el servidor
+      await BunkerDB.consulta(
+        '''
+        INSERT INTO usuarioclavedigital (id_usuario, public_key_pem)
+        VALUES (:id, :pub)
+        ON DUPLICATE KEY UPDATE public_key_pem = :pub_update
+        ''',
+        params: <String, dynamic>{
+          'id': userId,
+          'pub': keyPair.publicKeyB64,
+          'pub_update': keyPair.publicKeyB64,
+        },
+      );
+    } catch (_) {
+      // El fallo de E2EE no debe bloquear el login
     }
   }
 
