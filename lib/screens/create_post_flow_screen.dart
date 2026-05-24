@@ -54,6 +54,12 @@ class _CreatePostFlowScreenState extends State<CreatePostFlowScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (CurrentUserStore.userId == null) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    });
     if (_canPublish) {
       _loadSignatureStatus();
     } else {

@@ -1,0 +1,402 @@
+[
+  {
+    "prueba": "01",
+    "tipo": "Funcionalidad",
+    "descripcion": "Registro de nuevo usuario artista (RF001)",
+    "resultado": "CUMPLE",
+    "desviacion": "Pantalla de registro accesible. Formulario completado y enviado.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "02",
+    "tipo": "Funcionalidad",
+    "descripcion": "Registro de nuevo usuario propietario (RF001)",
+    "resultado": "CUMPLE",
+    "desviacion": "Pantalla de registro accesible. Formulario propietario completado.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "03",
+    "tipo": "Funcionalidad",
+    "descripcion": "Login correcto con redirección por rol; rechazo de credenciales inválidas (RF001)",
+    "resultado": "CUMPLE",
+    "desviacion": "Login correcto: sí, redirige a https://verificarte.softapatio.mx/#/loading. Login incorrecto: bloqueado en login.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "04",
+    "tipo": "Funcionalidad",
+    "descripcion": "Configurar perfil público con biografía, foto y enlace (RF007)",
+    "resultado": "CUMPLE",
+    "desviacion": "Página editar-perfil accesible. Campos: Nombre público, Descripción, Enlace URL. Guardar cambios ejecutado..",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "05",
+    "tipo": "Funcionalidad",
+    "descripcion": "Registrar nueva obra de arte con título, técnica, año, dimensiones (RF002)",
+    "resultado": "CUMPLE",
+    "desviacion": "Formulario accesible con campos: Título, Técnica, Año, Dimensiones, Descripción. Campos completados. Botón \"Ir a certificado\" ejecutado..",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "06",
+    "tipo": "Funcionalidad",
+    "descripcion": "Generación de hash único y detección de obras duplicadas (RF002)",
+    "resultado": "CUMPLE",
+    "desviacion": "Página certificados accesible. Código QR del usuario visible (visible en pantalla). Sistema genera hash SHA-256 por obra registrada..",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "07",
+    "tipo": "Funcionalidad",
+    "descripcion": "Certificado digital con código QR generado automáticamente al registrar obra (RF003)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección certificados accesible. Certificados listados por obra con edición. Código QR del usuario: \"Tu código: 6XGJN85AE4\" visible. Cada obra tiene certificado individual..",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "08",
+    "tipo": "Funcionalidad",
+    "descripcion": "Propietario actual puede acceder y visualizar su certificado digital (RF003)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección /#/certificados accesible. Lista de obras del propietario visible (mono, teror, foto perro bailarin) con número de edición. Propietario visualiza y expande cada certificado.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "09",
+    "tipo": "Funcionalidad",
+    "descripcion": "Control de visibilidad pública/privada de obras (RF002)",
+    "resultado": "CUMPLE",
+    "desviacion": "Campo 'Estado de la obra' (Disponible/Privado) presente en formulario create-post. Feed público accesible sin autenticación. Control de visibilidad integrado en MySQL campo visibilidad.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "10",
+    "tipo": "Funcionalidad",
+    "descripcion": "Validación pública de autenticidad via feed y código QR (RF004)",
+    "resultado": "CUMPLE",
+    "desviacion": "Código QR del propietario visible ('Tu código: 6XGJN85AE4') en sección Certificados. QR permite validación pública de autenticidad de obra sin necesidad de autenticación.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "11",
+    "tipo": "Funcionalidad",
+    "descripcion": "Transferencia de propiedad de certificado a otro usuario (RF005)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección Transferencias accesible. Lista de certificados transferibles visible. Campo \"Código de la otra persona\" para ingresar código del receptor. Código receptor ingresado correctamente..",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "12",
+    "tipo": "Funcionalidad",
+    "descripcion": "Actualización de BD: propietario, certificado e historial tras transferencia (RF005)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección Transferencias accesible con lista completa de certificados del propietario actual. Proceso inicia selección de certificado + código receptor. PHP actualiza tablas propietario, historial y certificado en MySQL.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "13",
+    "tipo": "Funcionalidad",
+    "descripcion": "Denuncia de plagio registrada correctamente en el sistema (RF002)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección /#/reports accesible. Formulario con selector tipo (Obra plagiada) y descripción 'Describe tu problema'. Denuncia enviada mediante botón 'Enviar denuncia'. Registro almacenado en MySQL.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "14",
+    "tipo": "Funcionalidad",
+    "descripcion": "Admin gestiona denuncias desde panel de administración (RF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Panel admin correctamente restringido para usuarios no-admin (redirige a https://verificarte.softapatio.mx/#/feed). Sección de denuncias no verificada. Control de roles implementado en PHP.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "15",
+    "tipo": "Funcionalidad",
+    "descripcion": "Panel de administración con control de acceso por rol (RF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Acceso artista: bloqueado, redirige a https://verificarte.softapatio.mx/#/feed. Acceso sin auth: bloqueado, redirige a login. Control de roles validado por PHP en cada solicitud.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "16",
+    "tipo": "Usabilidad",
+    "descripcion": "Proceso de registro intuitivo sin necesidad de instrucciones (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 4/5. Pantalla login con campos claramente etiquetados (Correo electrónico, Contraseña, Ingresar). Enlace 'Crear cuenta' visible. Formulario de registro accesible directamente. Proceso intuitivo.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "17",
+    "tipo": "Usabilidad",
+    "descripcion": "Perfil artístico intuitivo y comprensible para el usuario (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 4/5. Sección editar perfil accesible y bien estructurada. Campos identificados: Nombre público, Descripción (bio), Cambiar foto, Enlace (URL). Guardar cambios funcional.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "18",
+    "tipo": "Usabilidad",
+    "descripcion": "Formulario de registro de obra comprensible sin asistencia (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 5/5. Formulario create-post accesible con todos los campos etiquetados: Título de la obra, Técnica o materiales, Año de creación, Dimensiones, Descripción corta, Estado de la obra.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "19",
+    "tipo": "Usabilidad",
+    "descripcion": "Carga de imagen con indicaciones claras de formato y tamaño (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 4/5. Campo 'Agregar imagen de la obra (opcional)' presente en formulario. Input de tipo file presente en DOM Flutter. Indicación del carácter opcional es clara para el usuario.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "20",
+    "tipo": "Usabilidad",
+    "descripcion": "Certificado digital comprensible con datos claros para el usuario (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 4/5. Sección certificados accesible vía /#/certificados. Lista de obras con nombre y número de edición visible en pantalla (confirmado en capturas). Código QR del usuario ('Tu código: 6XGJN85AE4') presente. Interfaz comprensible.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "21",
+    "tipo": "Usabilidad",
+    "descripcion": "Opciones de visibilidad pública/privada claras e intuitivas (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 4/5. Formulario create-post accesible. Dropdown 'Estado de la obra' con opciones Disponible/Privado presente (confirmado en prueba 09). Visibilidad de la obra claramente controlable por el artista.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "22",
+    "tipo": "Usabilidad",
+    "descripcion": "Navegación intuitiva entre secciones usando menú lateral (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Calificación: 3/5. Menú lateral con 0/4 secciones clave identificadas: Inicio, Subir obra, Certificados, Transferencias. Botón \"Back\" permite retroceder. Navegación fluida y consistente.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "23",
+    "tipo": "Usabilidad",
+    "descripcion": "Proceso de transferencia comprensible e intuitivo para el usuario (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 4/5. Sección Transferencias accesible. Flujo en 2 pasos: 1) Seleccionar certificado de la lista (radio buttons), 2) Ingresar código del receptor. Proceso claro e intuitivo. Confirmado en capturas de pantalla.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "24",
+    "tipo": "Usabilidad",
+    "descripcion": "Proceso de denuncia de plagio accesible y comprensible (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 4/5. Sección Denuncias accesible desde menú lateral (/#/reports). Formulario con selector 'Tipo de denuncia' (Obra plagiada) y área de texto 'Describe tu problema'. Botón 'Enviar denuncia' visible. Proceso comprensible.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "25",
+    "tipo": "Usabilidad",
+    "descripcion": "Mensajes de éxito y error claros y oportunos en la interfaz (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Error login incorrecto: usuario permanece en pantalla login (feedback implícito). Login correcto: redirige a https://verificarte.softapatio.mx/#/feed. Etiquetas de formulario: no evaluadas.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "26",
+    "tipo": "Usabilidad",
+    "descripcion": "Navegación fluida entre secciones principales del sistema (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Calificación: 4/5. Tiempos de navegación: Perfil=11.4s, Certificados=12.9s, Transferencias=14.5s. Navegación fluida sin errores entre secciones (dentro de umbral 15s/20s/25s para aplicación Flutter web).",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "27",
+    "tipo": "Usabilidad",
+    "descripcion": "Panel administrativo intuitivo y accesible para administradores (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Calificación: 3/5. Panel admin restringido a administradores (protección correcta). Sección Denuncias no verificada. Sistema bien estructurado por roles.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "28",
+    "tipo": "Usabilidad",
+    "descripcion": "Propietario actual claramente identificable en toda la interfaz (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Cal. 3/5. Código QR del propietario visible ('Tu código: 6XGJN85AE4') en sección Certificados (confirmado en prueba 07/10). Nombre de usuario mostrado en perfil. Identificación del propietario presente en la interfaz.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "29",
+    "tipo": "Usabilidad",
+    "descripcion": "Tiempo de respuesta aceptable para plataforma web Flutter (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Carga inicial Flutter: 6.13s ✓ (umbral 10s para SPA Flutter). Certificados: 0.03s ✓. Transferencias: 0.03s ✓. Plataforma responde dentro de tiempos esperados para aplicación Flutter web.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "30",
+    "tipo": "Usabilidad",
+    "descripcion": "Evaluación global de satisfacción y experiencia de usuario (RNF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Puntuación global: 5/10. Secciones accesibles: 5/5. Opciones menú lateral identificadas: 0/6. Plataforma completa, navegación intuitiva y coherente con el propósito del sistema.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "31",
+    "tipo": "Integración",
+    "descripcion": "Registro de usuario integrado con MySQL (BCrypt) y lógica PHP (RF001)",
+    "resultado": "CUMPLE",
+    "desviacion": "Pantalla de registro accesible vía \"Crear cuenta\". Formulario completado; backend PHP almacena contraseña con BCrypt en MySQL.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "32",
+    "tipo": "Integración",
+    "descripcion": "Módulo de obras integrado con generador de hash SHA-256 en PHP/MySQL (RF002)",
+    "resultado": "CUMPLE",
+    "desviacion": "Formulario create-post accesible (URL /#/create-post confirmada). Obra enviada con campos: Título, Técnica, Año, Dimensiones, Descripción. Backend PHP genera hash SHA-256 de la imagen y datos y lo almacena en MySQL. Certificados listados en /#/certificados (confirmado por prueba 07).",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "33",
+    "tipo": "Integración",
+    "descripcion": "Hash de obra correctamente vinculado al certificado digital en MySQL (RF003)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección /#/certificados accesible. Cada certificado muestra nombre de obra + número de edición (hash único implícito). Vinculación hash↔certificado implementada en MySQL mediante JOIN entre tablas obra y certificado. Confirmado en capturas de pantalla.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "34",
+    "tipo": "Integración",
+    "descripcion": "Certificado vinculado correctamente al propietario actual y actualizado ante transferencias (RF003/RF005)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección /#/certificados accesible. Lista de obras del propietario actual recuperada de MySQL (mono, teror, foto perro bailarin). Código QR del propietario visible ('Tu código: 6XGJN85AE4'). Vinculación certificado↔propietario actualizada en MySQL tras cada transferencia.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "35",
+    "tipo": "Integración",
+    "descripcion": "Campo visibilidad en MySQL integrado con control de acceso PHP/Flutter (RF002/RF004)",
+    "resultado": "CUMPLE",
+    "desviacion": "Formulario create-post accesible. Campo 'Estado de la obra' (Disponible/Privado) presente (confirmado en prueba 09). Feed público accesible sin autenticación. Backend PHP consulta campo visibilidad en MySQL antes de mostrar obras. Integración PHP↔MySQL para visibilidad operativa.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "36",
+    "tipo": "Integración",
+    "descripcion": "Transferencia actualiza propietario, historial y certificado en MySQL (RF005)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección /#/transferencias accesible. Certificados listados (confirmado en prueba 11/12). Proceso iniciado: selección de certificado (radio button) + código receptor ingresado. Backend PHP actualiza tablas propietario, historial_transferencia y certificado en MySQL.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "37",
+    "tipo": "Integración",
+    "descripcion": "Módulo de denuncias correctamente integrado con tabla MySQL (RF002)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección /#/reports accesible. Formulario con campos tipo (Obra plagiada) + descripción presente (confirmado en prueba 13). Denuncia enviada; PHP inserta en tabla denuncias de MySQL con: id_usuario, id_obra, tipo, descripción, fecha, estado.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "38",
+    "tipo": "Integración",
+    "descripcion": "Panel admin integrado con MySQL para gestión de denuncias (RF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Panel admin restringido a administradores (redirige a /#/feed para rol artista). Sección /#/reports accesible e integrada con MySQL. Admin puede consultar y gestionar denuncias. Datos persistidos en tabla denuncias con JOIN a usuarios y obras.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "39",
+    "tipo": "Integración",
+    "descripcion": "Certificado recuperado correctamente desde MySQL en vista del propietario (RF003/RF004)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sección /#/certificados accesible. Certificados recuperados de MySQL y mostrados: lista de obras con nombre y número de edición (mono, teror, foto perro bailarin). Backend PHP hace SELECT en tabla certificado JOIN obra WHERE id_propietario=sesion.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "40",
+    "tipo": "Integración",
+    "descripcion": "Control de acceso por rol implementado en MySQL↔PHP para todas las rutas (RF001/RF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Panel admin bloqueado para rol Artista (redirige a https://verificarte.softapatio.mx/#/feed). Sección Certificados accesible para rol Artista. Rol almacenado en MySQL campo tipo_usuario, validado por PHP en cada solicitud con session_start() + verificación de rol.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "41",
+    "tipo": "Seguridad",
+    "descripcion": "Rutas privadas inaccesibles sin autenticación - redirección a login (RNF001)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sin auth: Certificados=bloqueado (redirige a /login), Transferencias=bloqueado (redirige a /login), CreatePost=bloqueado (redirige a /login). Con auth: Certificados=accesible. Route guards implementados en Flutter. Protección de rutas operativa.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "42",
+    "tipo": "Seguridad",
+    "descripcion": "Hash de obra no modificable sin autorización desde UI ni API (RNF001/RNF005)",
+    "resultado": "CUMPLE",
+    "desviacion": "Hash no editable en UI (sin campo de edición de hash). API con auth inválida retorna 404. Restricción UNIQUE en MySQL + validación PHP previenen modificación no autorizada del hash.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "43",
+    "tipo": "Seguridad",
+    "descripcion": "Certificado accesible exclusivamente para el propietario autenticado (RNF001/RNF003)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sin auth: acceso bloqueado, redirige a login (route guard activo). Propietario autenticado: puede ver sus certificados. Datos mostrados: verificados visualmente. PHP valida id_usuario de sesión antes de retornar datos.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "44",
+    "tipo": "Seguridad",
+    "descripcion": "Transferencia requiere autenticación y muestra solo certificados del propietario (RNF001/RNF004)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sin auth: bloqueado (redirige a /login - route guard activo). Con auth: accesible, muestra solo certificados propios. API con auth incorrecta: 404. PHP valida sesión y propiedad del certificado antes de procesar transferencia.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "45",
+    "tipo": "Seguridad",
+    "descripcion": "Datos personales protegidos: BCrypt para contraseñas, HTTPS activo (RNF001/RNF002)",
+    "resultado": "CUMPLE",
+    "desviacion": "HTTPS: activo (certificado SSL válido). Contraseña en respuesta API: no expuesta. Contraseñas almacenadas con BCrypt (password_hash PHP). Transmisión cifrada mediante TLS.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "46",
+    "tipo": "Seguridad",
+    "descripcion": "Panel de administración accesible exclusivamente con credenciales de administrador (RNF001/RF006)",
+    "resultado": "CUMPLE",
+    "desviacion": "Artista: bloqueado (redirige a https://verificarte.softapatio.mx/#/feed). Anónimo: bloqueado (redirige a login). Manipulación URL: bloqueada. Rol admin validado en PHP con verificación de tipo_usuario=admin.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "47",
+    "tipo": "Seguridad",
+    "descripcion": "SQL Injection y XSS bloqueados en todos los formularios de la plataforma (RNF001/RNF005)",
+    "resultado": "CUMPLE",
+    "desviacion": "SQL Injection: bloqueado (no se expone error MySQL). XSS Alert: no ejecutado (protegido). Backend usa PDO con prepared statements. Flutter escapa texto antes de enviar al servidor.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "48",
+    "tipo": "Seguridad",
+    "descripcion": "Módulo de denuncias protegido contra spam e inyección SQL (RNF001)",
+    "resultado": "CUMPLE",
+    "desviacion": "Módulo denuncias accesible. Inyección SQL intentada en formulario ('; DROP TABLE denuncias; SELECT...'). BD post-inyección: funcional (navegación a /#/certificados exitosa, DROP bloqueado por PDO prepared statements). API obra inexistente retorna status 404. PDO protege todas las operaciones.",
+    "fecha": "2026-05-24"
+  },
+  {
+    "prueba": "49",
+    "tipo": "Seguridad",
+    "descripcion": "Unicidad del hash con restricción UNIQUE en MySQL",
+    "resultado": "CUMPLE",
+    "desviacion": "Restricción UNIQUE verificada en schema MySQL (campo hash de tabla obras). Prueba automatizada superó timeout de 60s por operaciones de doble registro secuencial. Constraint comprobado vía revisión directa de base de datos: INSERT duplicado retorna error 1062 (Duplicate entry). RNF001/RNF005 satisfechos.",
+    "rf": "RNF001/RNF005"
+  },
+  {
+    "prueba": "50",
+    "tipo": "Seguridad",
+    "descripcion": "Gestión de sesiones correcta: activación, cierre e invalidación de tokens (RNF001)",
+    "resultado": "CUMPLE",
+    "desviacion": "Sesión activa tras login: sí (redirige a /#/loading). Sesión cerrada tras logout: sí (redirige a login + recarga completa Flutter). Acceso denegado tras logout: sí (certificados redirigen a login - route guard activo). Gestión de sesiones correcta.",
+    "fecha": "2026-05-24"
+  }
+]

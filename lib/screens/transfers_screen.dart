@@ -30,6 +30,12 @@ class _TransfersScreenState extends State<TransfersScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (CurrentUserStore.userId == null) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    });
     _load();
   }
 
