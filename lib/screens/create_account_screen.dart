@@ -345,7 +345,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       return 'Campo requerido';
     }
     if (value != _passwordController.text) {
-      return 'Las contrasenas no coinciden';
+      return 'Las contraseñas no coinciden';
     }
     return null;
   }
@@ -707,9 +707,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       obscureText: _obscurePassword,
                       validator: _passwordValidator,
                       decoration: InputDecoration(
-                        labelText: 'Contrasena',
+                        labelText: 'Contraseña',
                         helperText:
-                            'Debe tener 8 caracteres, una mayuscula y un caracter especial.',
+                            'Debe tener 8 caracteres, una mayúscula y un carácter especial.',
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -730,7 +730,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       obscureText: _obscureConfirm,
                       validator: _confirmPasswordValidator,
                       decoration: InputDecoration(
-                        labelText: 'Confirmar contrasena',
+                        labelText: 'Confirmar contraseña',
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureConfirm

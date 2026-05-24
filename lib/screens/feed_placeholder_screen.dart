@@ -545,7 +545,7 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
                         child: Text('Denunciar plagio'),
                       ),
                       DropdownMenuItem(
-                        value: 'contenido_explicitio',
+                        value: 'contenido_explicito',
                         child: Text('Contenido no deseado o explícito'),
                       ),
                       DropdownMenuItem(
