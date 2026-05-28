@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:bcrypt/bcrypt.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'bunker_db.dart';
@@ -125,83 +124,34 @@ class AuthApi {
       );
     }
     try {
-      await _ensureLegalColumns();
-      final cleanEmail = email.trim().toLowerCase();
-      final cleanUsername = username.trim();
-      final duplicates = _asList(
-        await BunkerDB.consulta(
-          '''
-          SELECT id_usuario
-          FROM usuario
-          WHERE correo = :email OR nombre_usuario = :username
-          LIMIT 1
-          ''',
-          params: <String, dynamic>{
-            'email': cleanEmail,
-            'username': cleanUsername,
-          },
-        ),
-      );
-      if (duplicates.isNotEmpty) {
-        return AuthResult.conflict('Cuenta ya creada');
-      }
-
-      final transferCode = await _uniqueTransferCode();
-      final hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-      final insert = await BunkerDB.consulta(
-        '''
-        INSERT INTO usuario (
-          nombre_usuario,
-          nombre_publico,
-          correo,
-          password_hash,
-          rol,
-          estado_cuenta,
-          transfer_code,
-          accepted_terms_at,
-          accepted_privacy_at
-        ) VALUES (
-          :username,
-          :public_name,
-          :email,
-          :password_hash,
-          :role,
-          'activa',
-          :transfer_code,
-          NOW(),
-          NOW()
-        )
-        ''',
+      final result = await BunkerDB.consulta(
+        'CALL BUNKER_AUTH_REGISTER',
         params: <String, dynamic>{
-          'username': cleanUsername,
+          'username': username.trim(),
           'public_name': publicName.trim(),
-          'email': cleanEmail,
-          'password_hash': hashedPassword,
-          'role': _normalizeRole(accountType),
-          'transfer_code': transferCode,
+          'email': email.trim().toLowerCase(),
+          'password': password,
+          'account_type': accountType,
+          'accepted_terms': acceptedTerms,
+          'accepted_privacy': acceptedPrivacy,
         },
       );
-      int? userId;
-      if (insert is Map) {
-        userId = _parseUserId(insert['last_id']);
-      } else if (insert is List && insert.isNotEmpty) {
-        userId = _parseUserId((insert.first as Map?)?['last_id']);
-      }
-      if (userId == null || userId <= 0) {
-        final fallback = _asList(
-          await BunkerDB.consulta(
-            'SELECT id_usuario FROM usuario WHERE correo = :email LIMIT 1',
-            params: <String, dynamic>{'email': cleanEmail},
-          ),
-        );
-        if (fallback.isNotEmpty) {
-          userId = _parseUserId(fallback.first['id_usuario']);
+      if (result is Map<String, dynamic>) {
+        final map = result;
+        if (map['ok'] == true) {
+          final userId = _parseUserId(map['userId']);
+          final role = _parseRole(map['role']) ?? _normalizeRole(accountType);
+          return AuthResult.ok(userId: userId, role: role);
         }
+        final errMsg = (map['error'] ?? '').toString();
+        if (errMsg.contains('ya existe') || errMsg.contains('ya creada')) {
+          return AuthResult.conflict('Cuenta ya creada');
+        }
+        return AuthResult.fail(
+          errMsg.isNotEmpty ? errMsg : 'No se pudo crear la cuenta',
+        );
       }
-      if (userId == null || userId <= 0) {
-        return AuthResult.fail('No se pudo crear la cuenta');
-      }
-      return AuthResult.ok(userId: userId, role: _normalizeRole(accountType));
+      return AuthResult.fail('No se pudo crear la cuenta');
     } catch (_) {
       return AuthResult.fail('No se pudo crear la cuenta');
     }
@@ -212,50 +162,32 @@ class AuthApi {
     required String password,
   }) async {
     try {
-      final rows = _asList(
-        await BunkerDB.consulta(
-          '''
-          SELECT id_usuario, password_hash, rol, estado_cuenta, suspendida_hasta, suspension_motivo
-          FROM usuario
-          WHERE correo = :email
-          LIMIT 1
-          ''',
-          params: <String, dynamic>{'email': email.trim().toLowerCase()},
-        ),
+      final result = await BunkerDB.consulta(
+        'CALL BUNKER_AUTH_LOGIN',
+        params: <String, dynamic>{
+          'email': email.trim().toLowerCase(),
+          'password': password,
+        },
       );
-      if (rows.isEmpty) {
-        return AuthResult.fail('Credenciales inválidas');
-      }
-      final user = rows.first;
-      final hash = (user['password_hash'] ?? '').toString();
-      if (hash.isEmpty || !BCrypt.checkpw(password, hash)) {
-        return AuthResult.fail('Credenciales inválidas');
-      }
-      final state = (user['estado_cuenta'] ?? '').toString();
-      if (state == 'suspendida') {
-        final until = (user['suspendida_hasta'] ?? '').toString().trim();
-        final reason = (user['suspension_motivo'] ?? '').toString().trim();
-        final extra = until.isEmpty ? reason : 'Vuelve el $until';
+      if (result is Map<String, dynamic>) {
+        if (result['ok'] == true) {
+          final userId = _parseUserId(result['userId']);
+          final role = _parseRole(result['role']);
+          if (userId != null && password.isNotEmpty) {
+            _initE2eKeys(
+              password: password,
+              userId: userId,
+              email: email.trim().toLowerCase(),
+            );
+          }
+          return AuthResult.ok(userId: userId, role: role);
+        }
+        final errMsg = (result['error'] ?? '').toString();
         return AuthResult.fail(
-          extra.isEmpty ? 'Cuenta suspendida' : 'Cuenta suspendida. $extra',
+          errMsg.isNotEmpty ? errMsg : 'Credenciales inválidas',
         );
       }
-      if (state == 'eliminada') {
-        return AuthResult.fail('Cuenta eliminada');
-      }
-      final userId = _parseUserId(user['id_usuario']);
-      final role = _parseRole(user['rol']);
-
-      // Derivar keypair E2EE y registrar clave pública (fire-and-forget)
-      if (userId != null && password.isNotEmpty) {
-        _initE2eKeys(
-          password: password,
-          userId: userId,
-          email: email.trim().toLowerCase(),
-        );
-      }
-
-      return AuthResult.ok(userId: userId, role: role);
+      return AuthResult.fail('No se pudo iniciar sesión');
     } catch (_) {
       return AuthResult.fail('No se pudo iniciar sesión');
     }
