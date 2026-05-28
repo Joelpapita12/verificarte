@@ -24,6 +24,7 @@ class FeedPostDto {
     required this.ediciones,
     this.likedByMe = false,
     this.favoritedByMe = false,
+    this.artistPhotoUrl,
   });
 
   final int id;
@@ -48,6 +49,7 @@ class FeedPostDto {
   final List<FeedPostEditionDto> ediciones;
   final bool likedByMe;
   final bool favoritedByMe;
+  final String? artistPhotoUrl;
 
   FeedPostDto copyWith({int? likeCount, int? commentCount, int? favoriteCount, bool? likedByMe, bool? favoritedByMe}) {
     return FeedPostDto(
@@ -63,6 +65,7 @@ class FeedPostDto {
       ediciones: ediciones,
       likedByMe: likedByMe ?? this.likedByMe,
       favoritedByMe: favoritedByMe ?? this.favoritedByMe,
+      artistPhotoUrl: artistPhotoUrl,
     );
   }
 
@@ -111,6 +114,7 @@ class FeedPostDto {
           json['favorited_by_me'] == true ||
           json['favorited_by_me'] == 1 ||
           json['favorited_by_me']?.toString() == '1',
+      artistPhotoUrl: json['foto_perfil_artista']?.toString(),
     );
   }
 }

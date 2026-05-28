@@ -118,6 +118,7 @@ class FeedApi {
           p.es_mayor_18,
           u.nombre_usuario,
           u.nombre_publico,
+          u.foto_perfil AS foto_perfil_artista,
           od.edicion,
           od.nombre_autor_completo,
           od.tecnica_materiales,

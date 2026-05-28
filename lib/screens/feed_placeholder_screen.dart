@@ -927,6 +927,7 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
               artistLabel: post.publicName.isNotEmpty
                   ? post.publicName
                   : post.artistName,
+              artistPhotoUrl: post.artistPhotoUrl,
               onTapArtist: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -962,6 +963,7 @@ class _FeedPostCard extends StatefulWidget {
     required this.onComment,
     required this.onMessage,
     required this.onMenuSelected,
+    this.artistPhotoUrl,
   });
 
   final FeedPostDto post;
@@ -970,6 +972,7 @@ class _FeedPostCard extends StatefulWidget {
   final bool canEdit;
   final String timestampLabel;
   final String artistLabel;
+  final String? artistPhotoUrl;
   final VoidCallback onTapArtist;
   final VoidCallback onLike;
   final VoidCallback onFavorite;
@@ -1059,16 +1062,20 @@ class _FeedPostCardState extends State<_FeedPostCard> {
                         CircleAvatar(
                           radius: 24,
                           backgroundColor: Colors.white.withValues(alpha: 0.16),
-                          child: Text(
-                            widget.artistLabel.isEmpty
-                                ? '?'
-                                : widget.artistLabel.characters.first
-                                      .toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          backgroundImage: (widget.artistPhotoUrl?.trim().isNotEmpty == true)
+                              ? NetworkImage(widget.artistPhotoUrl!)
+                              : null,
+                          child: (widget.artistPhotoUrl?.trim().isNotEmpty == true)
+                              ? null
+                              : Text(
+                                  widget.artistLabel.isEmpty
+                                      ? '?'
+                                      : widget.artistLabel.characters.first.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
