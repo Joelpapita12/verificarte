@@ -131,6 +131,7 @@ class CertificateDto {
     this.keyFingerprint,
     this.signatureTimestamp,
     this.signatureImageUrl,
+    this.declarationOfAuthenticity,
   });
 
   final int id;
@@ -161,6 +162,7 @@ class CertificateDto {
   final String? keyFingerprint;
   final String? signatureTimestamp;
   final String? signatureImageUrl;
+  final String? declarationOfAuthenticity;
 
   factory CertificateDto.fromJson(Map<String, dynamic> json) {
     int toInt(dynamic value) {
@@ -203,6 +205,7 @@ class CertificateDto {
       keyFingerprint: json['huella_llave']?.toString(),
       signatureTimestamp: json['timestamp_firma']?.toString(),
       signatureImageUrl: json['signature_image_url']?.toString(),
+      declarationOfAuthenticity: json['declaracion_autenticidad']?.toString(),
     );
   }
 }
@@ -244,6 +247,7 @@ class MyCertificateDto {
     this.signatureTimestamp,
     this.validationState,
     this.signatureImageUrl,
+    this.declarationOfAuthenticity,
   });
 
   final int certificateId;
@@ -281,6 +285,7 @@ class MyCertificateDto {
   final String? signatureTimestamp;
   final String? validationState;
   final String? signatureImageUrl;
+  final String? declarationOfAuthenticity;
 
   factory MyCertificateDto.fromJson(Map<String, dynamic> json) {
     int toInt(dynamic value) {
@@ -334,6 +339,7 @@ class MyCertificateDto {
       signatureTimestamp: json['timestamp_firma']?.toString(),
       validationState: json['estado_validacion']?.toString(),
       signatureImageUrl: json['signature_image_url']?.toString(),
+      declarationOfAuthenticity: json['declaracion_autenticidad']?.toString(),
     );
   }
 }

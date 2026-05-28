@@ -151,7 +151,10 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
 
     final technique = (certificate.tecnicaMateriales ?? '').trim();
     final dimensions = (certificate.dimensions ?? '').trim();
-    final qrValue = (certificate.qrCode ?? '').trim();
+    final rawToken = (certificate.qrCode ?? certificate.link ?? '').trim();
+    final qrUrl = rawToken.isNotEmpty
+        ? 'https://verificarte.softapatio.mx/verify_cert.php?t=$rawToken'
+        : '-';
     final registrationTimestamp = (certificate.registrationTimestamp ?? '')
         .trim();
     final certificateTimestamp = (certificate.certificateCreatedAt ?? '').trim();
@@ -178,7 +181,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
           : '-',
       artworkHash: artworkHash.isEmpty ? '-' : artworkHash,
       folio: '#${certificate.certificateId}',
-      qrValue: qrValue.isEmpty ? '-' : qrValue,
+      qrValue: qrUrl,
       registrationTimestamp: registrationTimestamp.isEmpty
           ? '-'
           : registrationTimestamp,
@@ -188,6 +191,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
       artImageUrl: certificate.postImageUrl,
       authorFullName: certificate.authorFullName,
       signatureImageUrl: certificate.signatureImageUrl,
+      declarationOfAuthenticity: certificate.declarationOfAuthenticity,
     );
   }
 

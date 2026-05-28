@@ -18,6 +18,7 @@ class CertificateTemplateData {
     this.artImageUrl,
     this.authorFullName,
     this.signatureImageUrl,
+    this.declarationOfAuthenticity,
   });
 
   final String title;
@@ -36,6 +37,7 @@ class CertificateTemplateData {
   final String? artImageUrl;
   final String? authorFullName;
   final String? signatureImageUrl;
+  final String? declarationOfAuthenticity;
 }
 
 class CertificateTemplateView extends StatelessWidget {
@@ -164,6 +166,24 @@ class CertificateTemplateView extends StatelessWidget {
                         ),
                 ),
               ),
+              if ((data.declarationOfAuthenticity ?? '').trim().isNotEmpty)
+                Positioned(
+                  left: w * 0.038,
+                  top: h * 0.430,
+                  width: w * 0.420,
+                  child: Text(
+                    data.declarationOfAuthenticity!.trim(),
+                    textAlign: TextAlign.justify,
+                    style: TextStyle(
+                      color: const Color(0xFF1E2740),
+                      fontSize: w * 0.0115,
+                      fontWeight: FontWeight.w700,
+                      height: 1.45,
+                    ),
+                    maxLines: 10,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               Positioned(
                 left: w * 0.178,
                 top: h * 0.652,

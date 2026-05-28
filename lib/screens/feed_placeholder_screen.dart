@@ -693,7 +693,12 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
             '-',
         artworkHash: certificate.artworkHash ?? '-',
         folio: '#${certificate.id}',
-        qrValue: certificate.qrCode ?? certificate.link ?? '-',
+        qrValue: () {
+          final rawToken = (certificate.qrCode ?? certificate.link ?? '').trim();
+          return rawToken.isNotEmpty
+              ? 'https://verificarte.softapatio.mx/verify_cert.php?t=$rawToken'
+              : '-';
+        }(),
         registrationTimestamp: certificate.registrationTimestamp ?? '-',
         certificateTimestamp:
             certificate.certificateCreatedAt ??
@@ -708,6 +713,7 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
             certificate.artistName ??
             post.publicName,
         signatureImageUrl: certificate.signatureImageUrl,
+        declarationOfAuthenticity: certificate.declarationOfAuthenticity,
       );
 
       await showDialog<void>(
