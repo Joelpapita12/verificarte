@@ -179,8 +179,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _linksController,
+              minLines: 2,
+              maxLines: 5,
               decoration: const InputDecoration(
-                labelText: 'Enlaces (texto o URL)',
+                labelText: 'Redes sociales / enlaces',
+                hintText: 'Instagram: @usuario\nTikTok: @usuario\nhttps://tusitio.com',
+                alignLabelWithHint: true,
               ),
             ),
             const SizedBox(height: 20),

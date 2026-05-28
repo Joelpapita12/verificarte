@@ -9,6 +9,7 @@ class ProfileTopSection extends StatelessWidget {
     required this.description,
     this.accountCode,
     this.photoUrl,
+    this.externalLinks,
     this.showMessageButton = true,
     this.onMessageTap,
     this.onAvatarTap,
@@ -18,6 +19,7 @@ class ProfileTopSection extends StatelessWidget {
   final String description;
   final String? accountCode;
   final String? photoUrl;
+  final String? externalLinks;
   final bool showMessageButton;
   final VoidCallback? onMessageTap;
   final VoidCallback? onAvatarTap;
@@ -87,22 +89,30 @@ class ProfileTopSection extends StatelessWidget {
             style: const TextStyle(fontSize: 14, color: Colors.white70),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.link, size: 16, color: AppColors.colorEnlace),
-              SizedBox(width: 6),
-              Text(
-                'Enlaces',
-                style: TextStyle(
-                  color: AppColors.colorEnlace,
-                  fontSize: 14,
-                  decoration: TextDecoration.underline,
+          if ((externalLinks ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(Icons.link, size: 16, color: AppColors.colorEnlace),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    externalLinks!.trim(),
+                    style: const TextStyle(
+                      color: AppColors.colorEnlace,
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (showMessageButton) ...[
             const SizedBox(height: 12),
             GestureDetector(

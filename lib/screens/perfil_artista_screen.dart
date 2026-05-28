@@ -31,6 +31,7 @@ class _PerfilArtistaScreenState extends State<PerfilArtistaScreen> {
   String _description = '[Descripción]';
   String? _accountCode;
   String? _photoUrl;
+  String? _externalLinks;
   int? _profileUserId;
 
   @override
@@ -70,6 +71,7 @@ class _PerfilArtistaScreenState extends State<PerfilArtistaScreen> {
         _photoUrl = profileResult.profile!.photoUrl;
         _accountCode = profileResult.profile!.transferCode;
       }
+      _externalLinks = await _authApi.fetchExternalLinks(userId: _profileUserId!);
 
       final dto = await _feedApi.fetchPosts(artistId: _profileUserId);
       final filtered = dto
@@ -413,6 +415,7 @@ class _PerfilArtistaScreenState extends State<PerfilArtistaScreen> {
               description: _description,
               accountCode: _accountCode,
               photoUrl: _photoUrl,
+              externalLinks: _externalLinks,
               showMessageButton: !isOwnProfile,
               onMessageTap: !isOwnProfile ? _openMessageToProfile : null,
               onAvatarTap: () => _openAvatarActions(isOwnProfile),
