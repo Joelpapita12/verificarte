@@ -636,7 +636,7 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
                       final OwnershipHistoryDto item = history[index];
                       return ListTile(
                         leading: const Icon(Icons.history),
-                        title: Text('${item.fromName} ? ${item.toName}'),
+                        title: Text('${item.fromName} → ${item.toName}'),
                         subtitle: Text(_formatDateTime(item.createdAt)),
                       );
                     },
