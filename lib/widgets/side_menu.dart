@@ -2,6 +2,7 @@
 
 import '../constants/app_colors.dart';
 import '../screens/create_account_screen.dart';
+import '../services/theme_service.dart';
 import '../screens/certificates_screen.dart';
 import '../screens/edit_profile_screen.dart';
 import '../screens/favorites_screen.dart';
@@ -348,6 +349,35 @@ class _SideMenuState extends State<SideMenu> {
                       title: 'Preferencias',
                       onTap: () async =>
                           rootNavigator.pushNamed(PreferencesScreen.routeName),
+                    ),
+                    ListenableBuilder(
+                      listenable: ThemeService.instance,
+                      builder: (ctx, _) => _MenuHover(
+                        child: SwitchListTile(
+                          contentPadding: const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                          ),
+                          secondary: Icon(
+                            ThemeService.instance.isDark
+                                ? Icons.dark_mode_outlined
+                                : Icons.light_mode_outlined,
+                            color: Colors.white,
+                          ),
+                          title: Text(
+                            ThemeService.instance.isDark
+                                ? 'Modo oscuro'
+                                : 'Modo claro',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          value: ThemeService.instance.isDark,
+                          onChanged: (_) => ThemeService.instance.toggle(),
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: const Color(0xFF2E5FA3),
+                          inactiveThumbColor: Colors.white70,
+                          inactiveTrackColor: const Color(0xFF455A7A),
+                        ),
+                      ),
                     ),
                     if (isArtist)
                       item(

@@ -95,15 +95,15 @@ class ProfileTopSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 2),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
                   child: Icon(Icons.link, size: 16, color: AppColors.colorEnlace),
                 ),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     externalLinks!.trim(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.colorEnlace,
                       fontSize: 14,
                     ),
@@ -127,7 +127,7 @@ class ProfileTopSection extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Enviar mensaje',
                     style: TextStyle(
                       fontSize: 14,

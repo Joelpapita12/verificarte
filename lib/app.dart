@@ -19,6 +19,7 @@ import 'screens/reset_password_screen.dart';
 import 'screens/stats_dashboard_screen.dart';
 import 'screens/transfers_screen.dart';
 import 'screens/two_factor_screen.dart';
+import 'services/theme_service.dart';
 import 'theme/app_theme.dart';
 
 class VerificarteApp extends StatelessWidget {
@@ -26,10 +27,22 @@ class VerificarteApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: ThemeService.instance,
+      builder: (context, _) => _AppMaterial(),
+    );
+  }
+}
+
+class _AppMaterial extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Verificarte',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeService.instance.themeMode,
       initialRoute: FeedPlaceholderScreen.routeName,
       routes: {
         AdminPanelScreen.routeName: (context) => const AdminPanelScreen(),

@@ -168,19 +168,19 @@ class CertificateTemplateView extends StatelessWidget {
               ),
               if ((data.declarationOfAuthenticity ?? '').trim().isNotEmpty)
                 Positioned(
-                  left: w * 0.038,
-                  top: h * 0.430,
-                  width: w * 0.420,
+                  left: w * 0.055,
+                  top: h * 0.288,
+                  width: w * 0.465,
                   child: Text(
                     data.declarationOfAuthenticity!.trim(),
                     textAlign: TextAlign.justify,
                     style: TextStyle(
                       color: const Color(0xFF1E2740),
-                      fontSize: w * 0.0115,
+                      fontSize: w * 0.0118,
                       fontWeight: FontWeight.w700,
-                      height: 1.45,
+                      height: 1.50,
                     ),
-                    maxLines: 10,
+                    maxLines: 9,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
