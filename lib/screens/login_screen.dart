@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 
-import '../services/theme_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_buttons.dart';
 import '../services/auth_api.dart';
@@ -164,9 +163,38 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  static final ThemeData _loginTheme = ThemeData(
+    fontFamily: 'Georgia',
+    textTheme: const TextTheme(
+      headlineSmall: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.2,
+        color: Color(0xFF1E2740),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF1E2740),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 48),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.2),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: const Color(0xFF344A6A)),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Theme(
+      data: _loginTheme,
+      child: Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
           final bool isWide = constraints.maxWidth >= 900;
@@ -174,16 +202,13 @@ class _LoginScreenState extends State<LoginScreen> {
               ? 420
               : (constraints.maxWidth * 0.92).clamp(320, 520);
 
-          final isDark = ThemeService.instance.isDark;
           return Container(
             width: double.infinity,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: isDark
-                    ? [const Color(0xFF031035), const Color(0xFF0C1F41)]
-                    : [const Color(0xFF1565C0), const Color(0xFF0D47A1)],
+                colors: [Color(0xFFF5F5F2), Color(0xFFE7ECF3)],
               ),
             ),
             child: Center(
@@ -406,6 +431,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }
