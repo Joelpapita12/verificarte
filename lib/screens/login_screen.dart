@@ -236,8 +236,28 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: _emailValidator,
-                                decoration: const InputDecoration(
+                                style: const TextStyle(color: AppColors.deepNavy),
+                                decoration: InputDecoration(
                                   labelText: 'Correo electrónico',
+                                  labelStyle: TextStyle(color: AppColors.slateBlue),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF0F4FF),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.mistBlue),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.steelBlue, width: 1.5),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFB00020), width: 1.5),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFB00020), width: 2),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -245,13 +265,34 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 validator: _requiredValidator,
+                                style: const TextStyle(color: AppColors.deepNavy),
                                 decoration: InputDecoration(
                                   labelText: 'Contraseña',
+                                  labelStyle: TextStyle(color: AppColors.slateBlue),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF0F4FF),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.mistBlue),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.steelBlue, width: 1.5),
+                                  ),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFB00020), width: 1.5),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFB00020), width: 2),
+                                  ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscurePassword
                                           ? Icons.visibility
                                           : Icons.visibility_off,
+                                      color: AppColors.slateBlue,
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -279,14 +320,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               const SizedBox(height: 10),
                               OutlinedButton.icon(
-                                onPressed: _googleLoading
-                                    ? null
-                                    : _loginWithGoogle,
-                                icon: const Icon(Icons.g_mobiledata, size: 26),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.slateBlue,
+                                  side: BorderSide(color: AppColors.mistBlue),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                                ),
+                                onPressed: _googleLoading ? null : _loginWithGoogle,
+                                icon: Icon(Icons.g_mobiledata, size: 26, color: AppColors.slateBlue),
                                 label: Text(
-                                  _googleLoading
-                                      ? 'Conectando...'
-                                      : 'Ingresar con Google',
+                                  _googleLoading ? 'Conectando...' : 'Ingresar con Google',
+                                  style: TextStyle(color: AppColors.slateBlue),
                                 ),
                               ),
                               const SizedBox(height: 12),

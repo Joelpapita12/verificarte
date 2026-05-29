@@ -168,12 +168,12 @@ class CertificateTemplateView extends StatelessWidget {
               ),
               if ((data.declarationOfAuthenticity ?? '').trim().isNotEmpty)
                 Positioned(
-                  left: w * 0.085,
+                  left: w * 0.130,
                   top: h * 0.290,
-                  width: w * 0.430,
+                  width: w * 0.340,
                   child: Text(
                     data.declarationOfAuthenticity!.trim(),
-                    textAlign: TextAlign.justify,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: const Color(0xFF1E2740),
                       fontSize: w * 0.0118,
