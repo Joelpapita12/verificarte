@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../services/theme_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_buttons.dart';
 import '../services/auth_api.dart';
@@ -173,13 +174,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ? 420
               : (constraints.maxWidth * 0.92).clamp(320, 520);
 
+          final isDark = ThemeService.instance.isDark;
           return Container(
             width: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFF5F5F2), Color(0xFFE7ECF3)],
+                colors: isDark
+                    ? [const Color(0xFF031035), const Color(0xFF0C1F41)]
+                    : [const Color(0xFF1565C0), const Color(0xFF0D47A1)],
               ),
             ),
             child: Center(

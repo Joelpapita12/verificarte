@@ -168,9 +168,9 @@ class CertificateTemplateView extends StatelessWidget {
               ),
               if ((data.declarationOfAuthenticity ?? '').trim().isNotEmpty)
                 Positioned(
-                  left: w * 0.055,
-                  top: h * 0.288,
-                  width: w * 0.465,
+                  left: w * 0.085,
+                  top: h * 0.290,
+                  width: w * 0.430,
                   child: Text(
                     data.declarationOfAuthenticity!.trim(),
                     textAlign: TextAlign.justify,
