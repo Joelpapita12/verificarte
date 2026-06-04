@@ -1167,10 +1167,11 @@ class FeedApi {
           h.id_edicion,
           h.fecha_transferencia,
           h.mostrar_nombre,
-          ua.nombre_usuario AS anterior_username,
-          ua.nombre_publico AS anterior_publico,
-          un.nombre_usuario AS nuevo_username,
-          un.nombre_publico AS nuevo_publico
+          -- Prioridad: snapshot guardado → JOIN actual → fallback
+          COALESCE(h.nombre_anterior, ua.nombre_publico, ua.nombre_usuario, 'Propietario anterior') AS anterior_publico,
+          COALESCE(ua.nombre_usuario, '') AS anterior_username,
+          COALESCE(h.nombre_nuevo, un.nombre_publico, un.nombre_usuario, 'Propietario') AS nuevo_publico,
+          COALESCE(un.nombre_usuario, '') AS nuevo_username
         FROM historialpropiedad h
         LEFT JOIN usuario ua ON ua.id_usuario = h.id_propietario_anterior
         LEFT JOIN usuario un ON un.id_usuario = h.id_propietario_nuevo
@@ -1336,12 +1337,32 @@ class FeedApi {
         'certificate_id': cert['id_certificado'],
       },
     );
+    // Obtener nombres actuales para guardar snapshot en el historial.
+    final senderRows = _rows(await BunkerDB.consulta(
+      'SELECT nombre_publico, nombre_usuario FROM usuario WHERE id_usuario = :id LIMIT 1',
+      params: <String, dynamic>{'id': userId},
+    ));
+    final receiverRows = _rows(await BunkerDB.consulta(
+      'SELECT nombre_publico, nombre_usuario FROM usuario WHERE id_usuario = :id LIMIT 1',
+      params: <String, dynamic>{'id': targetUserId},
+    ));
+    String pickName(List<Map<String, dynamic>> rows) {
+      if (rows.isEmpty) return '';
+      final pub = (rows.first['nombre_publico'] ?? '').toString().trim();
+      if (pub.isNotEmpty) return pub;
+      return (rows.first['nombre_usuario'] ?? '').toString().trim();
+    }
+    final senderName = pickName(senderRows);
+    final receiverName = anonymous ? 'Anónimo' : pickName(receiverRows);
+
     await BunkerDB.consulta(
       '''
       INSERT INTO historialpropiedad (
-        id_publicacion, id_edicion, id_propietario_anterior, id_propietario_nuevo, mostrar_nombre
+        id_publicacion, id_edicion, id_propietario_anterior, id_propietario_nuevo,
+        mostrar_nombre, nombre_anterior, nombre_nuevo
       ) VALUES (
-        :post_id, :edition_id, :previous_id, :target_id, :mostrar_nombre
+        :post_id, :edition_id, :previous_id, :target_id,
+        :mostrar_nombre, :nombre_anterior, :nombre_nuevo
       )
       ''',
       params: <String, dynamic>{
@@ -1350,6 +1371,8 @@ class FeedApi {
         'previous_id': userId,
         'target_id': targetUserId,
         'mostrar_nombre': anonymous ? 0 : 1,
+        'nombre_anterior': senderName,
+        'nombre_nuevo': receiverName,
       },
     );
   }
