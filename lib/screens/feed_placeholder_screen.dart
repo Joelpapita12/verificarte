@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
+import '../services/theme_service.dart';
 import '../models/api_models.dart';
 import '../models/feed_post.dart';
 import '../screens/chats_screen.dart';
@@ -42,11 +43,19 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
   @override
   void initState() {
     super.initState();
+    // Suscribirse al ThemeService para que el Scaffold se repinte
+    // inmediatamente cuando el usuario cambie el tema.
+    ThemeService.instance.addListener(_onThemeChange);
     _loadData();
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    ThemeService.instance.removeListener(_onThemeChange);
     _scrollController.dispose();
     super.dispose();
   }
@@ -173,7 +182,8 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
                 .toList();
           });
 
-          if (notification.otherUserId != null) {
+          if (notification.type == 'message' &&
+              notification.otherUserId != null) {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ChatsScreen(
@@ -1755,7 +1765,8 @@ class _NotificationsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Notificaciones'),
+      title: const Text('Notificaciones', style: TextStyle(color: Colors.white)),
+      backgroundColor: const Color(0xFF0C1F41),
       content: SizedBox(
         width: 520,
         child: Column(
@@ -1764,18 +1775,21 @@ class _NotificationsDialog extends StatelessWidget {
           children: <Widget>[
             const Text(
               'Aquí aparecen los likes, comentarios y mensajes nuevos que recibes en tus publicaciones.',
-              style: TextStyle(color: Colors.black54, fontSize: 13),
+              style: TextStyle(color: Colors.white70, fontSize: 13),
             ),
-            const Divider(height: 20),
+            const Divider(height: 20, color: Colors.white24),
             if (notifications.isEmpty)
-              const Text('No tienes notificaciones nuevas.')
+              const Text(
+                'No tienes notificaciones nuevas.',
+                style: TextStyle(color: Colors.white70),
+              )
             else
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 360),
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: notifications.length,
-                  separatorBuilder: (_, _) => const Divider(),
+                  separatorBuilder: (_, _) => const Divider(color: Colors.white12),
                   itemBuilder: (context, index) {
                     final NotificationDto notification = notifications[index];
                     final String subtitle;
@@ -1787,20 +1801,26 @@ class _NotificationsDialog extends StatelessWidget {
                     } else {
                       subtitle = 'Nuevo mensaje';
                     }
+                    final IconData typeIcon = notification.type == 'like'
+                        ? Icons.favorite_rounded
+                        : notification.type == 'comment'
+                        ? Icons.comment_rounded
+                        : Icons.chat_bubble_rounded;
                     return ListTile(
                       tileColor: notification.unread
-                          ? Colors.blue.withValues(alpha: 0.08)
+                          ? Colors.white.withValues(alpha: 0.08)
                           : null,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       leading: CircleAvatar(
-                        child: Text(
-                          notification.actorName.isEmpty
-                              ? '?'
-                              : notification.actorName.characters.first
-                                    .toUpperCase(),
-                        ),
+                        backgroundColor: const Color(0xFF2E5FA3),
+                        child: notification.actorName.isEmpty
+                            ? Icon(typeIcon, color: Colors.white, size: 18)
+                            : Text(
+                                notification.actorName.characters.first.toUpperCase(),
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
                       ),
                       title: Text(
                         notification.type == 'like'
@@ -1808,9 +1828,11 @@ class _NotificationsDialog extends StatelessWidget {
                             : notification.type == 'comment'
                             ? 'Nuevo comentario'
                             : 'Nuevo mensaje',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                       ),
                       subtitle: Text(
                         '$subtitle\n${_timeAgo(notification.createdAt)}',
+                        style: const TextStyle(color: Colors.white70),
                       ),
                       isThreeLine: true,
                       onTap: () => onTapNotification(notification),
@@ -1824,7 +1846,7 @@ class _NotificationsDialog extends StatelessWidget {
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cerrar'),
+          child: const Text('Cerrar', style: TextStyle(color: Colors.white70)),
         ),
       ],
     );

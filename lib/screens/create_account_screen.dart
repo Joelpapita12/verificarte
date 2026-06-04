@@ -112,6 +112,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       publicName: _publicNameController.text.trim(),
       photoUrl: null,
     );
+    CurrentUserStore.saveToLocalStorage();
 
     await showDialog<void>(
       context: context,
@@ -250,8 +251,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
           ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 820, maxHeight: 720),
+          child: SizedBox(
+            width: 820,
+            height: 680,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -298,6 +300,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.deepNavy,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                       child: const Text('Cerrar'),
                     ),
@@ -494,6 +499,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       children: [
                         Checkbox(
                           value: _acceptedTerms,
+                          activeColor: AppColors.deepNavy,
+                          checkColor: Colors.white,
+                          side: const BorderSide(color: AppColors.slateBlue, width: 2),
                           onChanged: (value) {
                             setState(() {
                               _acceptedTerms = value ?? false;
@@ -534,6 +542,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       children: [
                         Checkbox(
                           value: _acceptedPrivacy,
+                          activeColor: AppColors.deepNavy,
+                          checkColor: Colors.white,
+                          side: const BorderSide(color: AppColors.slateBlue, width: 2),
                           onChanged: (value) {
                             setState(() {
                               _acceptedPrivacy = value ?? false;

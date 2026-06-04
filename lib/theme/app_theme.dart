@@ -1,60 +1,67 @@
 import 'package:flutter/material.dart';
 
+// Paleta de colores verificARTE:
+//   #192744 — navy muy oscuro
+//   #3D5A8A — azul navy medio
+//   #6B8DC5 — azul cornflower
+//   #B5C8E8 — azul periwinkle claro
+//   #EFF3FA — casi blanco
+
 class AppTheme {
   AppTheme._();
 
-  // Modo claro: azul medio vibrante — el texto blanco hardcodeado sigue legible.
+  // Modo claro: fondo blanco/gris, acentos azules de la paleta.
   static final ThemeData lightTheme = ThemeData(
     colorScheme: const ColorScheme(
       brightness: Brightness.light,
-      primary: Colors.white,
-      onPrimary: Color(0xFF0D47A1),
-      secondary: Color(0xFF90CAF9),
-      onSecondary: Color(0xFF0D47A1),
-      error: Color(0xFFEF9A9A),
-      onError: Color(0xFF7F0000),
-      surface: Color(0xFF1565C0),
-      onSurface: Colors.white,
+      primary: Color(0xFF3D5A8A),
+      onPrimary: Colors.white,
+      secondary: Color(0xFF6B8DC5),
+      onSecondary: Colors.white,
+      error: Color(0xFFB00020),
+      onError: Colors.white,
+      surface: Colors.white,
+      onSurface: Color(0xFF192744),
     ),
-    scaffoldBackgroundColor: const Color(0xFF1565C0),
+    scaffoldBackgroundColor: const Color(0xFFEFF3FA),
     fontFamily: 'Georgia',
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF0D47A1),
+      backgroundColor: Color(0xFF3D5A8A),
       foregroundColor: Colors.white,
       elevation: 0,
     ),
-    cardColor: const Color(0xFF1976D2),
-    dividerColor: const Color(0xFF42A5F5),
+    cardColor: Colors.white,
+    dividerColor: const Color(0xFFB5C8E8),
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
-      fillColor: Color(0xFF1565C0),
+      fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: Color(0xFF64B5F6)),
+        borderSide: BorderSide(color: Color(0xFFB5C8E8)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: Color(0xFF64B5F6)),
+        borderSide: BorderSide(color: Color(0xFFB5C8E8)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: Colors.white, width: 1.5),
+        borderSide: BorderSide(color: Color(0xFF3D5A8A), width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: Color(0xFFEF9A9A), width: 1.5),
+        borderSide: BorderSide(color: Color(0xFFB00020), width: 1.5),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: Color(0xFFEF9A9A), width: 2),
+        borderSide: BorderSide(color: Color(0xFFB00020), width: 2),
       ),
-      labelStyle: TextStyle(color: Color(0xFFBBDEFB)),
-      hintStyle: TextStyle(color: Color(0xFF90CAF9)),
+      labelStyle: TextStyle(color: Color(0xFF6B8DC5)),
+      hintStyle: TextStyle(color: Color(0xFFB5C8E8)),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Color(0xFF0D47A1),
+        backgroundColor: const Color(0xFF3D5A8A),
+        foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
@@ -64,42 +71,42 @@ class AppTheme {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: Colors.white),
+        foregroundColor: const Color(0xFF3D5A8A),
+        side: const BorderSide(color: Color(0xFF3D5A8A)),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: const Color(0xFFBBDEFB)),
+      style: TextButton.styleFrom(foregroundColor: const Color(0xFF3D5A8A)),
     ),
     textTheme: const TextTheme(
       headlineSmall: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.2,
-        color: Colors.white,
+        color: Color(0xFF192744),
       ),
       titleMedium: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: Colors.white,
+        color: Color(0xFF192744),
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         height: 1.5,
-        color: Color(0xFFBBDEFB),
+        color: Color(0xFF3D5A8A),
       ),
     ),
-    iconTheme: const IconThemeData(color: Colors.white),
+    iconTheme: const IconThemeData(color: Color(0xFF3D5A8A)),
     snackBarTheme: const SnackBarThemeData(
-      backgroundColor: Color(0xFF0D47A1),
+      backgroundColor: Color(0xFF3D5A8A),
       contentTextStyle: TextStyle(color: Colors.white),
     ),
   );
 
-  // Modo oscuro: azul marino casi negro — aspecto actual.
+  // Modo oscuro: azul marino casi negro — aspecto original.
   static final ThemeData darkTheme = ThemeData(
     colorScheme: const ColorScheme(
       brightness: Brightness.dark,

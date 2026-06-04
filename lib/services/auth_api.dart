@@ -124,6 +124,25 @@ class AuthApi {
       );
     }
     try {
+      // Si hay una cuenta eliminada con este correo, la borramos para permitir
+      // que el usuario vuelva a registrarse con la misma dirección.
+      final existing = _asList(
+        await BunkerDB.consulta(
+          'SELECT id_usuario, estado_cuenta FROM usuario WHERE correo = :email LIMIT 1',
+          params: <String, dynamic>{'email': email.trim().toLowerCase()},
+        ),
+      );
+      if (existing.isNotEmpty) {
+        final estado = (existing.first['estado_cuenta'] ?? '').toString();
+        if (estado == 'eliminada') {
+          final oldId = existing.first['id_usuario'];
+          await BunkerDB.consulta(
+            'DELETE FROM usuario WHERE id_usuario = :id AND estado_cuenta = \'eliminada\'',
+            params: <String, dynamic>{'id': oldId},
+          );
+        }
+      }
+
       final result = await BunkerDB.consulta(
         'CALL BUNKER_AUTH_REGISTER',
         params: <String, dynamic>{

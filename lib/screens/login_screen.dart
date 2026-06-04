@@ -111,6 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
       CurrentUserStore.setUserId(result.userId);
       CurrentUserStore.setRole(result.role);
+      CurrentUserStore.saveToLocalStorage();
       if (result.userId != null) {
         final me = await _authApi.fetchMe(userId: result.userId!);
         if (me.ok && me.profile != null) {
@@ -145,6 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
       CurrentUserStore.setUserId(result.userId);
       CurrentUserStore.setRole(result.role);
+      CurrentUserStore.saveToLocalStorage();
       if (result.userId != null) {
         final me = await _authApi.fetchMe(userId: result.userId!);
         if (me.ok && me.profile != null) {
