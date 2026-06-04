@@ -37,6 +37,7 @@ class _SideMenuState extends State<SideMenu> {
   void initState() {
     super.initState();
     CurrentUserStore.profileRevision.addListener(_onProfileRevision);
+    ThemeService.instance.addListener(_onThemeChange);
     _accountName = CurrentUserStore.publicName ?? _accountName;
     _photoUrl = CurrentUserStore.photoUrl;
     _loadProfile();
@@ -45,6 +46,7 @@ class _SideMenuState extends State<SideMenu> {
   @override
   void dispose() {
     CurrentUserStore.profileRevision.removeListener(_onProfileRevision);
+    ThemeService.instance.removeListener(_onThemeChange);
     super.dispose();
   }
 
@@ -54,6 +56,10 @@ class _SideMenuState extends State<SideMenu> {
       _accountName = CurrentUserStore.publicName ?? _accountName;
       _photoUrl = CurrentUserStore.photoUrl;
     });
+  }
+
+  void _onThemeChange() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadProfile() async {
