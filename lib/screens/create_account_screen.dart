@@ -119,12 +119,31 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       result.role ??
           (_selectedAccountTypeValue == 'artist' ? 'artista' : 'seguidor'),
     );
+
+    // Subir foto de perfil si el usuario seleccionó una.
+    String? uploadedPhotoUrl;
+    if (_profileImageBytes != null && result.userId != null) {
+      uploadedPhotoUrl = await _authApi.uploadProfileImage(
+        bytes: _profileImageBytes!,
+        fileName: _profileImageName ?? 'foto.jpg',
+      );
+      if (uploadedPhotoUrl.isNotEmpty) {
+        await _authApi.updateProfilePhoto(
+          userId: result.userId!,
+          photoUrl: uploadedPhotoUrl,
+        );
+      } else {
+        uploadedPhotoUrl = null;
+      }
+    }
+
     CurrentUserStore.setProfile(
       publicName: _publicNameController.text.trim(),
-      photoUrl: null,
+      photoUrl: uploadedPhotoUrl,
     );
     CurrentUserStore.saveToLocalStorage();
 
+    if (!mounted) return;
     await showDialog<void>(
       context: context,
       builder: (context) {
@@ -441,7 +460,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     ),
                     const SizedBox(height: 10),
                     _AccountTypeOption(
-                      label: 'Comprador',
+                      label: 'Propietario',
                       value: AccountType.buyer,
                       isSelected: _selectedAccountType == AccountType.buyer,
                       onSelected: (value) {
@@ -634,46 +653,65 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: size.width < 400 ? 36 : 42,
-                          backgroundColor: AppColors.steelBlue.withValues(alpha: 
-                            0.15,
+                    GestureDetector(
+                      onTap: _pickProfileImage,
+                      child: Row(
+                        children: [
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: size.width < 400 ? 36 : 46,
+                                backgroundColor: AppColors.steelBlue.withValues(alpha: 0.2),
+                                backgroundImage: _profileImageBytes != null
+                                    ? MemoryImage(_profileImageBytes!)
+                                    : null,
+                                child: _profileImageBytes == null
+                                    ? Icon(Icons.person, color: AppColors.slateBlue, size: 36)
+                                    : null,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.deepNavy,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                                ),
+                              ),
+                            ],
                           ),
-                          backgroundImage: _profileImageBytes != null
-                              ? MemoryImage(_profileImageBytes!)
-                              : null,
-                          child: _profileImageBytes == null
-                              ? const Icon(
-                                  Icons.person,
-                                  color: AppColors.slateBlue,
-                                  size: 34,
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            'Sube una imagen para que tu perfil se vea profesional.',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _profileImageBytes == null
+                                      ? 'Toca para agregar foto de perfil'
+                                      : 'Foto seleccionada ✓',
+                                  style: TextStyle(
+                                    color: _profileImageBytes == null
+                                        ? AppColors.slateBlue
+                                        : AppColors.deepNavy,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (_profileImageName != null)
+                                  Text(
+                                    _profileImageName!,
+                                    style: TextStyle(color: AppColors.slateBlue, fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: _pickProfileImage,
-                      icon: const Icon(Icons.photo_camera),
-                      label: const Text('Subir foto de perfil'),
-                    ),
-                    if (_profileImageName != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'Imagen seleccionada: $_profileImageName',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        ],
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),

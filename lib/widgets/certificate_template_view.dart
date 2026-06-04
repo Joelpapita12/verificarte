@@ -166,23 +166,17 @@ class CertificateTemplateView extends StatelessWidget {
                         ),
                 ),
               ),
-              // Cubre el texto preimpreso de la plantilla y muestra la
-              // declaración del usuario encima.
-              Positioned(
-                left: w * 0.065,
-                top: h * 0.270,
-                width: w * 0.415,
-                height: h * 0.170,
-                child: Container(
-                  color: Colors.white,
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              if ((data.declarationOfAuthenticity ?? '').trim().isNotEmpty)
+                Positioned(
+                  left: w * 0.130,
+                  top: h * 0.290,
+                  width: w * 0.340,
                   child: Text(
-                    (data.declarationOfAuthenticity ?? '').trim(),
+                    data.declarationOfAuthenticity!.trim(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: const Color(0xFF1E2740),
-                      fontSize: w * 0.0112,
+                      fontSize: w * 0.0118,
                       fontWeight: FontWeight.w700,
                       height: 1.50,
                     ),
@@ -190,7 +184,6 @@ class CertificateTemplateView extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
               Positioned(
                 left: w * 0.178,
                 top: h * 0.652,

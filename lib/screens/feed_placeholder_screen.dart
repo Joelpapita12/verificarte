@@ -182,6 +182,7 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
                 .toList();
           });
 
+          // Mensaje → abrir chat con ese usuario.
           if (notification.type == 'message' &&
               notification.otherUserId != null) {
             Navigator.of(context).push(
@@ -194,8 +195,18 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
             return;
           }
 
+          // Like o comentario → ir a la publicación.
           if (notification.postId != null) {
             _scrollToPost(notification.postId);
+            // Si es comentario, además abrir la sección de comentarios.
+            if (notification.type == 'comment') {
+              final post = _posts.where(
+                (p) => p.id == notification.postId,
+              ).firstOrNull;
+              if (post != null && mounted) {
+                await _openComments(post);
+              }
+            }
           }
         },
       ),

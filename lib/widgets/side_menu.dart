@@ -269,7 +269,7 @@ class _SideMenuState extends State<SideMenu> {
               : role == 'artista'
               ? 'Artista'
               : role == 'seguidor'
-              ? 'Seguidor del arte'
+              ? 'Propietario'
               : 'Administrador',
           style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),

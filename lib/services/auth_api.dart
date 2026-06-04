@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
 import 'bunker_db.dart';
 import 'current_user_store.dart';
@@ -278,7 +281,7 @@ class AuthApi {
       final rows = _asList(
         await BunkerDB.consulta(
           '''
-          SELECT id_usuario, rol, accepted_terms_at, accepted_privacy_at
+          SELECT id_usuario, rol, estado_cuenta, accepted_terms_at, accepted_privacy_at
           FROM usuario
           WHERE google_sub = :google_sub OR correo = :email
           LIMIT 1
@@ -289,6 +292,11 @@ class AuthApi {
           },
         ),
       );
+
+      if (rows.isNotEmpty &&
+          (rows.first['estado_cuenta'] ?? '').toString() == 'eliminada') {
+        return AuthResult.fail('Esta cuenta fue eliminada. Por favor crea una nueva cuenta.');
+      }
 
       if (rows.isNotEmpty) {
         final user = rows.first;
@@ -507,15 +515,25 @@ class AuthApi {
   }) async {
     try {
       final motivo = (reason ?? '').trim();
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      // Anonimizar correo y limpiar google_sub para que la dirección quede
+      // libre para un nuevo registro y Google login no encuentre la cuenta.
       await BunkerDB.consulta(
         '''
         UPDATE usuario
-        SET estado_cuenta = 'eliminada',
-            suspension_motivo = :reason
+        SET estado_cuenta      = 'eliminada',
+            suspension_motivo  = :reason,
+            correo             = :anon_email,
+            google_sub         = NULL,
+            nombre_usuario     = :anon_user,
+            nombre_publico     = 'Cuenta eliminada',
+            foto_perfil        = NULL
         WHERE id_usuario = :id
         ''',
         params: <String, dynamic>{
           'reason': motivo.isEmpty ? 'Cuenta eliminada por el usuario' : motivo,
+          'anon_email': 'deleted_${ts}_$userId@deleted.invalid',
+          'anon_user': 'deleted_$ts',
           'id': userId,
         },
       );
@@ -527,6 +545,50 @@ class AuthApi {
     } catch (_) {
       return AuthResult.fail('No se pudo eliminar la cuenta');
     }
+  }
+
+  static const String _uploadUrl =
+      'https://verificarte.softapatio.mx/bunker_upload.php';
+  static const String _uploadKey = 'T4t3W4r1_S3cr3t_2026_X';
+
+  /// Sube bytes de imagen al servidor y devuelve la URL pública.
+  Future<String> uploadProfileImage({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_uploadUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': _uploadKey,
+        },
+        body: jsonEncode(<String, dynamic>{
+          'content_b64': base64Encode(bytes),
+          'file_name': fileName,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (data is Map && data['ok'] == true) {
+        return (data['url'] ?? '').toString().trim();
+      }
+      return '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Actualiza solo la foto de perfil del usuario.
+  Future<void> updateProfilePhoto({
+    required int userId,
+    required String photoUrl,
+  }) async {
+    try {
+      await BunkerDB.consulta(
+        'UPDATE usuario SET foto_perfil = :url WHERE id_usuario = :id',
+        params: <String, dynamic>{'url': photoUrl, 'id': userId},
+      );
+    } catch (_) {}
   }
 
   Future<String> fetchContentPreference({required int userId}) async {
