@@ -1159,11 +1159,6 @@ class FeedApi {
     required int postId,
     int? editionId,
   }) async {
-    final whereEdition = editionId == null ? '' : 'AND h.id_edicion = :edition_id';
-    final params = <String, dynamic>{
-      'post_id': postId,
-      ...?editionId == null ? null : <String, dynamic>{'edition_id': editionId},
-    };
     final rows = _rows(
       await BunkerDB.consulta(
         '''
@@ -1180,10 +1175,9 @@ class FeedApi {
         LEFT JOIN usuario ua ON ua.id_usuario = h.id_propietario_anterior
         LEFT JOIN usuario un ON un.id_usuario = h.id_propietario_nuevo
         WHERE h.id_publicacion = :post_id
-          $whereEdition
         ORDER BY h.fecha_transferencia DESC
         ''',
-        params: params,
+        params: <String, dynamic>{'post_id': postId},
       ),
     );
     return rows.map(OwnershipHistoryDto.fromJson).toList();

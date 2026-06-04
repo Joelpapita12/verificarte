@@ -5,12 +5,10 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/app_buttons.dart';
-import '../services/temp_session_store.dart';
 import '../services/auth_api.dart';
 import '../services/current_user_store.dart';
 import '../services/local_image_picker.dart';
 import 'loading_screen.dart';
-import 'two_factor_screen.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -144,43 +142,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     CurrentUserStore.saveToLocalStorage();
 
     if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Verificacion en dos pasos'),
-          content: const Text('Deseas hacer la verificacion en dos pasos?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(
-                  context,
-                ).pushReplacementNamed(LoadingScreen.routeName);
-              },
-              child: const Text('No'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                final signupPayload = <String, String?>{
-                  // Aqui va el back: manda estos datos al backend cuando exista.
-                  'sessionId': TempSessionStore.createSession(
-                    email: _emailController.text.trim(),
-                    accountType: _selectedAccountTypeValue ?? 'unknown',
-                  ),
-                };
-                Navigator.of(context).pushReplacementNamed(
-                  TwoFactorScreen.routeName,
-                  arguments: signupPayload,
-                );
-              },
-              child: const Text('Si'),
-            ),
-          ],
-        );
-      },
-    );
+    Navigator.of(context).pushReplacementNamed(LoadingScreen.routeName);
   }
 
   Future<void> _registerWithGoogle() async {

@@ -83,14 +83,7 @@ class PostCard extends StatelessWidget {
                   PopupMenuItem<String>(
                     value: 'history',
                     child: Text(
-                      'Historial de certificados',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  PopupMenuItem<String>(
-                    value: 'certificate',
-                    child: Text(
-                      'Ver certificado',
+                      'Historial de propietarios',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
