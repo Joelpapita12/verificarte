@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocus = FocusNode();
   bool _obscurePassword = true;
   bool _googleLoading = false;
   bool _loading = false;
@@ -47,6 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordFocus.dispose();
     _lockoutTimer?.cancel();
     super.dispose();
   }
@@ -262,7 +264,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextFormField(
                                 controller: _emailController,
                                 keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
                                 validator: _emailValidator,
+                                onFieldSubmitted: (_) =>
+                                    FocusScope.of(context).requestFocus(_passwordFocus),
                                 style: const TextStyle(color: AppColors.deepNavy),
                                 decoration: InputDecoration(
                                   labelText: 'Correo electrónico',
@@ -290,8 +295,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: 16),
                               TextFormField(
                                 controller: _passwordController,
+                                focusNode: _passwordFocus,
                                 obscureText: _obscurePassword,
+                                textInputAction: TextInputAction.done,
                                 validator: _requiredValidator,
+                                onFieldSubmitted: (_) => _submit(),
                                 style: const TextStyle(color: AppColors.deepNavy),
                                 decoration: InputDecoration(
                                   labelText: 'Contraseña',

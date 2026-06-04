@@ -23,6 +23,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  final _codeFocus = FocusNode();
+  final _newPasswordFocus = FocusNode();
+  final _confirmPasswordFocus = FocusNode();
+
   bool _showNewPasswordFields = false;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
@@ -35,6 +39,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     _codeController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
+    _codeFocus.dispose();
+    _newPasswordFocus.dispose();
+    _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
@@ -164,7 +171,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.done,
                 validator: _emailValidator,
+                onFieldSubmitted: (_) => _requestResetCode(),
                 decoration: const InputDecoration(
                   labelText: 'Correo',
                   hintText: 'ejemplo@correo.com',
@@ -181,12 +190,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _codeController,
+                focusNode: _codeFocus,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
                 validator: _requiredValidator,
+                onChanged: _toggleUnlockFields,
+                onFieldSubmitted: (_) =>
+                    FocusScope.of(context).requestFocus(_newPasswordFocus),
                 decoration: const InputDecoration(
                   labelText: 'Código de restablecimiento',
                 ),
-                onChanged: _toggleUnlockFields,
               ),
               const SizedBox(height: 16),
               AnimatedSwitcher(
@@ -197,8 +210,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         children: [
                           TextFormField(
                             controller: _newPasswordController,
+                            focusNode: _newPasswordFocus,
                             obscureText: _obscureNew,
+                            textInputAction: TextInputAction.next,
                             validator: _requiredValidator,
+                            onFieldSubmitted: (_) =>
+                                FocusScope.of(context).requestFocus(_confirmPasswordFocus),
                             decoration: InputDecoration(
                               labelText: 'Nueva contraseña',
                               helperText:
@@ -220,8 +237,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _confirmPasswordController,
+                            focusNode: _confirmPasswordFocus,
                             obscureText: _obscureConfirm,
+                            textInputAction: TextInputAction.done,
                             validator: _confirmPasswordValidator,
+                            onFieldSubmitted: (_) => _submitWithDelay(),
                             decoration: InputDecoration(
                               labelText: 'Confirmar contraseña',
                               helperText:

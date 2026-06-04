@@ -29,6 +29,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
+  final _usernameFocus = FocusNode();
+  final _publicNameFocus = FocusNode();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
+
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   bool _googleLoading = false;
@@ -47,6 +53,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     _publicNameController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _usernameFocus.dispose();
+    _publicNameFocus.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
@@ -687,7 +698,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   children: [
                     TextFormField(
                       controller: _usernameController,
+                      focusNode: _usernameFocus,
+                      textInputAction: TextInputAction.next,
                       validator: _requiredFieldValidator,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).requestFocus(_publicNameFocus),
                       decoration: const InputDecoration(
                         labelText: 'Nombre de usuario',
                         hintText: 'Tu usuario unico',
@@ -696,7 +711,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _publicNameController,
+                      focusNode: _publicNameFocus,
+                      textInputAction: TextInputAction.next,
                       validator: _requiredFieldValidator,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).requestFocus(_emailFocus),
                       decoration: const InputDecoration(
                         labelText: 'Nombre publico',
                         hintText: 'Como quieres que te vean',
@@ -705,8 +724,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
+                      focusNode: _emailFocus,
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
                       validator: _emailValidator,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).requestFocus(_passwordFocus),
                       decoration: const InputDecoration(
                         labelText: 'Correo',
                         hintText: 'ejemplo@correo.com',
@@ -715,8 +738,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
+                      focusNode: _passwordFocus,
                       obscureText: _obscurePassword,
+                      textInputAction: TextInputAction.next,
                       validator: _passwordValidator,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).requestFocus(_confirmFocus),
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
                         helperText:
@@ -738,8 +765,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _confirmController,
+                      focusNode: _confirmFocus,
                       obscureText: _obscureConfirm,
+                      textInputAction: TextInputAction.done,
                       validator: _confirmPasswordValidator,
+                      onFieldSubmitted: (_) => _showTwoFactorPrompt(),
                       decoration: InputDecoration(
                         labelText: 'Confirmar contraseña',
                         suffixIcon: IconButton(
