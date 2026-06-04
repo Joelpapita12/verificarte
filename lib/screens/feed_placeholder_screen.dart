@@ -655,9 +655,11 @@ class _FeedPlaceholderScreenState extends State<FeedPlaceholderScreen> {
                     separatorBuilder: (_, _) => const Divider(),
                     itemBuilder: (context, index) {
                       final OwnershipHistoryDto item = history[index];
+                      final String displayTo =
+                          item.showName ? item.toName : 'Anónimo';
                       return ListTile(
                         leading: const Icon(Icons.history),
-                        title: Text('${item.fromName} → ${item.toName}'),
+                        title: Text('${item.fromName} → $displayTo'),
                         subtitle: Text(_formatDateTime(item.createdAt)),
                       );
                     },
@@ -1169,13 +1171,6 @@ class _FeedPostCardState extends State<_FeedPostCard> {
                       value: 'history',
                       child: Text(
                         'Historial de propietarios',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'certificate',
-                      child: Text(
-                        'Ver certificado',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

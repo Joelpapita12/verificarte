@@ -22,6 +22,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
   bool _loading = true;
   bool _verifying = false;
   bool _sending = false;
+  bool _anonymous = false;
   String? _myCode;
   List<MyCertificateDto> _certificates = [];
   MyCertificateDto? _selected;
@@ -99,6 +100,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
         certificateId: _selected!.certificateId,
         editionId: _selected!.editionId,
         targetCode: _targetCodeController.text.trim(),
+        anonymous: _anonymous,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -205,7 +207,18 @@ class _TransfersScreenState extends State<TransfersScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  value: _anonymous,
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (v) => setState(() => _anonymous = v ?? false),
+                  title: const Text('Transferir de forma anónima'),
+                  subtitle: const Text(
+                    'Tu nombre no aparecerá en el historial de propietarios.',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: canSend ? _sendTransfer : null,
                   child: Text(_sending ? 'Enviando...' : 'Enviar certificado'),
