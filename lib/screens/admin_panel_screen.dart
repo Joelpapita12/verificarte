@@ -357,13 +357,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  ' - denunciante: @ · denunciado: @',
+                  '[${r.type.toUpperCase()}] — Estado: ${r.status}',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
-                Text(r.postTitle),
+                Text('Publicación: ${r.postTitle}'),
+                Text('Denunciante: @${r.reporterUsername}  ·  Denunciado: @${r.artistUsername}'),
+                Text('Fecha: ${r.createdAt.toLocal().toString().substring(0, 16)}'),
                 if (r.description.trim().isNotEmpty) ...[
-                  Text(r.description),
                   const SizedBox(height: 4),
+                  Text(r.description),
                 ],
                 const SizedBox(height: 8),
                 Wrap(
@@ -429,8 +431,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     return ListTile(
                       title: Text('${u.publicName} (@${u.username})'),
                       subtitle: Text(
-                        '${u.email} ? ${u.role} ? ${u.accountStatus}\n'
-                        'C?digo: ${u.transferCode.trim().isEmpty ? '-' : u.transferCode}',
+                        '${u.email} · ${u.role} · ${u.accountStatus}\n'
+                        'Código: ${u.transferCode.trim().isEmpty ? '-' : u.transferCode}',
                       ),
                       isThreeLine: true,
                       trailing: PopupMenuButton<String>(
@@ -542,7 +544,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                     return ListTile(
                       title: Text(p.title),
                       subtitle: Text(
-                        '@ · ',
+                        '@${p.artistUsername} · ${p.active ? 'Activa' : 'Inactiva'}',
                       ),
                       trailing: OutlinedButton(
                         onPressed: p.active ? () => _deletePost(p) : null,
@@ -634,7 +636,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               ),
               title: Text(certificate.postTitle),
               subtitle: Text(
-                'Edición  · Folio # · Propietario actual #',
+                'Edición ${certificate.edicionLabel} · Folio #${certificate.certificateId}',
               ),
             ),
           );
@@ -710,7 +712,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       itemBuilder: (context, index) {
         final a = _actions[index];
         final objetivo = (a.targetUser ?? '').trim();
-        final objetivoText = objetivo.isEmpty ? '' : ' ? Objetivo: @$objetivo';
+        final objetivoText = objetivo.isEmpty ? '' : ' · Objetivo: @$objetivo';
         return ListTile(
           leading: const Icon(Icons.history),
           title: Text(a.type),

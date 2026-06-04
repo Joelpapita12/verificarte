@@ -225,17 +225,33 @@ class AdminApi {
     String? reason,
   }) async {
     await _ensureAdmin(userId);
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final motivo = reason?.trim().isEmpty == true
+        ? 'Cuenta eliminada por administración'
+        : reason?.trim() ?? 'Cuenta eliminada por administración';
+    // Anonimizar email y google_sub para liberar el correo para re-registro.
     await BunkerDB.consulta(
       '''
       UPDATE usuario
-      SET estado_cuenta = 'eliminada',
-          suspension_motivo = :reason
+      SET estado_cuenta      = 'eliminada',
+          suspension_motivo  = :reason,
+          correo             = :anon_email,
+          google_sub         = NULL,
+          nombre_usuario     = :anon_user,
+          nombre_publico     = 'Cuenta eliminada',
+          foto_perfil        = NULL
       WHERE id_usuario = :target_id
       ''',
       params: <String, dynamic>{
         'target_id': targetUserId,
-        'reason': reason?.trim().isEmpty == true ? 'Cuenta eliminada por administración' : reason?.trim() ?? 'Cuenta eliminada por administración',
+        'reason': motivo,
+        'anon_email': 'deleted_${ts}_$targetUserId@deleted.invalid',
+        'anon_user': 'deleted_$ts',
       },
+    );
+    await BunkerDB.consulta(
+      'UPDATE publicacion SET activa = 0 WHERE id_artista = :id',
+      params: <String, dynamic>{'id': targetUserId},
     );
     await BunkerDB.consulta(
       'INSERT INTO adminaccion (id_admin, id_objetivo, tipo_accion, detalle) VALUES (:admin_id, :target_id, :tipo, :detalle)',
@@ -263,7 +279,7 @@ class AdminApi {
     } else if (mode == 'month') {
       state = 'suspendida';
       untilSql = 'DATE_ADD(NOW(), INTERVAL 30 DAY)';
-    } else if (mode == 'permanent') {
+    } else if (mode == 'permanent' || mode == 'indefinite') {
       state = 'suspendida';
       untilSql = null;
     }
@@ -368,19 +384,39 @@ class AdminApi {
       'UPDATE certificadodigital SET id_propietario_actual = :target_id WHERE id_certificado = :id',
       params: <String, dynamic>{'target_id': targetUserId, 'id': certificateId},
     );
+    // Snapshot de nombres para que el historial sea resiliente a eliminaciones.
+    String pickName(List<Map<String, dynamic>> rows) {
+      if (rows.isEmpty) return '';
+      final pub = (rows.first['nombre_publico'] ?? '').toString().trim();
+      return pub.isNotEmpty ? pub : (rows.first['nombre_usuario'] ?? '').toString().trim();
+    }
+    final prevId = _toInt(cert['id_propietario_actual']);
+    final prevRows = _rows(await BunkerDB.consulta(
+      'SELECT nombre_publico, nombre_usuario FROM usuario WHERE id_usuario = :id LIMIT 1',
+      params: <String, dynamic>{'id': prevId},
+    ));
+    final newRows = _rows(await BunkerDB.consulta(
+      'SELECT nombre_publico, nombre_usuario FROM usuario WHERE id_usuario = :id LIMIT 1',
+      params: <String, dynamic>{'id': targetUserId},
+    ));
+
     await BunkerDB.consulta(
       '''
       INSERT INTO historialpropiedad (
-        id_publicacion, id_edicion, id_propietario_anterior, id_propietario_nuevo, mostrar_nombre
+        id_publicacion, id_edicion, id_propietario_anterior, id_propietario_nuevo,
+        mostrar_nombre, nombre_anterior, nombre_nuevo
       ) VALUES (
-        :post_id, :edition_id, :previous_id, :target_id, 1
+        :post_id, :edition_id, :previous_id, :target_id,
+        1, :nombre_anterior, :nombre_nuevo
       )
       ''',
       params: <String, dynamic>{
         'post_id': cert['id_publicacion'],
         'edition_id': cert['id_edicion'],
-        'previous_id': cert['id_propietario_actual'],
+        'previous_id': prevId,
         'target_id': targetUserId,
+        'nombre_anterior': pickName(prevRows),
+        'nombre_nuevo': pickName(newRows),
       },
     );
     await BunkerDB.consulta(
