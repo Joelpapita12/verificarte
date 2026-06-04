@@ -132,9 +132,9 @@ class _CreatePostFlowScreenState extends State<CreatePostFlowScreen> {
   bool _validateStepCertificado() {
     if (_isAdmin) return true;
     final signatureOk = _hasStoredSignature || _firmaBytes != null;
-    return _nombreAutorController.text.trim().isNotEmpty &&
-        _declaracionController.text.trim().isNotEmpty &&
-        signatureOk;
+    // Declaración y nombre de autor tienen fallback, solo bloqueamos si no
+    // hay firma digital disponible.
+    return signatureOk;
   }
 
   Future<void> _loadSignatureStatus() async {
@@ -202,15 +202,12 @@ class _CreatePostFlowScreenState extends State<CreatePostFlowScreen> {
         );
       }
 
-      final nombreAutor = _isAdmin
-          ? (_nombreAutorController.text.trim().isEmpty
-                ? 'Administrador VerificArte'
-                : _nombreAutorController.text.trim())
+      final publicName = CurrentUserStore.publicName ?? '';
+      final nombreAutor = _nombreAutorController.text.trim().isEmpty
+          ? (publicName.isNotEmpty ? publicName : 'Artista')
           : _nombreAutorController.text.trim();
-      final declaracion = _isAdmin
-          ? (_declaracionController.text.trim().isEmpty
-                ? 'Publicación administrativa'
-                : _declaracionController.text.trim())
+      final declaracion = _declaracionController.text.trim().isEmpty
+          ? 'El artista certifica la autenticidad de esta obra.'
           : _declaracionController.text.trim();
 
       await _feedApi.createPost(
